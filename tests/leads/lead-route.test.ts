@@ -520,6 +520,98 @@ describe('POST /api/leads', () => {
     );
   });
 
+  it('preserves successful retry state when the logger throws', async () => {
+    const payload = payloadAdapter({
+      find: vi.fn().mockResolvedValue({
+        docs: [
+          {
+            id: 42,
+            name: 'Aline Kabeya',
+            email: 'aline@example.test',
+            message: validRequest.message,
+            sourcePage: validRequest.sourcePage,
+            locale: 'fr',
+            notificationAttempts: 1,
+            notificationStatus: 'retry_pending',
+          },
+        ],
+      }),
+    });
+    const logger = {
+      info: vi.fn(() => {
+        throw new Error('logger sink unavailable');
+      }),
+      warn: vi.fn(),
+      error: vi.fn(),
+    };
+
+    const result = await processLeadNotificationRetries({
+      payload,
+      notify: vi.fn().mockResolvedValue(undefined),
+      logger,
+      now: () => new Date('2026-10-28T10:10:00.000Z'),
+    });
+
+    expect(result).toEqual({ processed: 1, sent: 1, failed: 0 });
+    expect(payload.update).toHaveBeenCalledTimes(1);
+    expect(payload.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          notificationStatus: 'sent',
+          notificationAttempts: 2,
+          notificationAlertRequired: false,
+        }),
+      }),
+    );
+  });
+
+  it('persists retry state when the failure logger throws', async () => {
+    const payload = payloadAdapter({
+      find: vi.fn().mockResolvedValue({
+        docs: [
+          {
+            id: 42,
+            name: 'Aline Kabeya',
+            email: 'aline@example.test',
+            message: validRequest.message,
+            sourcePage: validRequest.sourcePage,
+            locale: 'fr',
+            notificationAttempts: 2,
+            notificationStatus: 'retry_pending',
+          },
+        ],
+      }),
+    });
+    const logger = {
+      info: vi.fn(),
+      warn: vi.fn(() => {
+        throw new Error('logger sink unavailable');
+      }),
+      error: vi.fn(() => {
+        throw new Error('logger sink unavailable');
+      }),
+    };
+
+    const result = await processLeadNotificationRetries({
+      payload,
+      notify: vi.fn().mockRejectedValue(new Error('mail sink unavailable')),
+      logger,
+      now: () => new Date('2026-10-28T10:10:00.000Z'),
+    });
+
+    expect(result).toEqual({ processed: 1, sent: 0, failed: 1 });
+    expect(payload.update).toHaveBeenCalledTimes(1);
+    expect(payload.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          notificationStatus: 'retry_pending',
+          notificationAttempts: 3,
+          notificationAlertRequired: true,
+        }),
+      }),
+    );
+  });
+
   it('emits structured redacted logs for a terminal retry error', async () => {
     const payload = payloadAdapter({
       find: vi.fn().mockResolvedValue({

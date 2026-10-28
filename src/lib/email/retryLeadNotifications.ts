@@ -5,6 +5,19 @@ import type { LeadNotification } from './sendLeadNotification';
 type RetryPayload = Pick<LeadPayloadAdapter, 'find'> &
   Required<Pick<LeadPayloadAdapter, 'update'>>;
 
+function safeLog(
+  logger: StructuredLogger,
+  level: 'info' | 'warn' | 'error',
+  event: string,
+  data: Record<string, unknown>,
+) {
+  try {
+    logger[level](event, data);
+  } catch {
+    // Observability must never change the notification state transition.
+  }
+}
+
 export async function processLeadNotificationRetries({
   payload,
   notify,
@@ -62,16 +75,12 @@ export async function processLeadNotificationRetries({
         },
       });
       sent += 1;
-      logger.info('lead.notification_retry_succeeded', {
+      safeLog(logger, 'info', 'lead.notification_retry_succeeded', {
         leadId: lead.id,
         attempts: attempts + 1,
       });
     } catch {
       const nextAttempts = attempts + 1;
-      logger.error('lead.notification_retry_failed', {
-        leadId: lead.id,
-        attempts: nextAttempts,
-      });
       await payload.update({
         collection: 'leads',
         id: lead.id,
@@ -86,8 +95,12 @@ export async function processLeadNotificationRetries({
           notificationAlertRequired: nextAttempts >= maxAttempts,
         },
       });
+      safeLog(logger, 'error', 'lead.notification_retry_failed', {
+        leadId: lead.id,
+        attempts: nextAttempts,
+      });
       if (nextAttempts >= maxAttempts) {
-        logger.warn('lead.notification_retry_alert_required', {
+        safeLog(logger, 'warn', 'lead.notification_retry_alert_required', {
           leadId: lead.id,
           attempts: nextAttempts,
         });

@@ -155,3 +155,35 @@ exit 0; eslint --max-warnings 0 completed with no errors.
 ```
 
 The post-adjustment full-suite rerun was started with `pnpm test` on the final code, but was intentionally interrupted after the user requested not to wait indefinitely; it exited 1 from the interruption before reporting a final test count. The completed full suite immediately before the final log-order-only adjustment was 19 test files / 169 tests passed; the post-adjustment focused retry file, typecheck and lint all passed.
+
+## Fix round 3 — logger sink isolation
+
+The Important regression was reproduced and fixed in `src/lib/email/retryLeadNotifications.ts`:
+
+- Added a `safeLog` helper that catches logger sink exceptions and treats observability as best-effort.
+- Kept the existing event names, levels, structured fields and redaction path when the logger works.
+- Moved failure logging after durable retry/alert persistence so a logger exception cannot skip `retry_pending` state.
+- Kept success logging after the durable `sent` transition so a logger exception cannot reclassify a successful notification as failed.
+- Added regressions proving a throwing success logger preserves `sent` state and a throwing failure/alert logger preserves terminal `retry_pending` plus `alertRequired` state.
+
+## Fix round 3 — exact validation evidence
+
+```text
+pnpm exec vitest run tests/leads/lead-route.test.ts --pool=threads --maxWorkers=1 --reporter=verbose
+Before implementation: 2 failed, 17 passed — logger exception reclassified success and skipped failure persistence.
+After implementation: 1 test file passed, 19 tests passed.
+
+pnpm exec vitest run tests/leads tests/security tests/unit/env.test.ts --pool=threads --maxWorkers=1 --reporter=verbose
+5 test files passed, 39 tests passed.
+
+pnpm typecheck
+exit 0; next typegen and tsc --noEmit completed.
+
+pnpm lint
+exit 0; eslint --max-warnings 0 completed with no errors.
+
+git diff --check
+exit 0; only Git's existing LF-to-CRLF working-copy warnings were emitted.
+```
+
+The full repository suite, production build, dependency audit, external mail provider, deployment and production smoke checks were not rerun in this fix round.
