@@ -5,6 +5,7 @@ import {
   type LeadPayloadAdapter,
 } from '../../app/api/leads/route';
 import { processLeadNotificationRetries } from '../../src/lib/email/retryLeadNotifications';
+import { createLogger } from '../../src/lib/observability/logger';
 
 const validRequest = {
   name: 'Aline Kabeya',
@@ -517,5 +518,46 @@ describe('POST /api/leads', () => {
         }),
       }),
     );
+  });
+
+  it('emits structured redacted logs for a terminal retry error', async () => {
+    const payload = payloadAdapter({
+      find: vi.fn().mockResolvedValue({
+        docs: [
+          {
+            id: 42,
+            name: 'Aline Kabeya',
+            email: 'aline@example.test',
+            message: validRequest.message,
+            sourcePage: validRequest.sourcePage,
+            locale: 'fr',
+            notificationAttempts: 2,
+            notificationStatus: 'retry_pending',
+          },
+        ],
+      }),
+    });
+    const output: string[] = [];
+    const logger = createLogger((line) => output.push(line));
+    const secret = 'smtp-password=do-not-emit';
+
+    await processLeadNotificationRetries({
+      payload,
+      notify: vi.fn().mockRejectedValue(new Error(secret)),
+      logger,
+      now: () => new Date('2026-10-28T10:10:00.000Z'),
+    });
+
+    expect(output).toHaveLength(2);
+    const entries = output.map((line) => JSON.parse(line));
+    expect(entries.map((entry) => entry.event)).toEqual([
+      'lead.notification_retry_failed',
+      'lead.notification_retry_alert_required',
+    ]);
+    expect(entries.map((entry) => entry.level)).toEqual(['error', 'warn']);
+    expect(entries.every((entry) => entry.timestamp)).toBe(true);
+    expect(output.join('\n')).not.toContain(secret);
+    expect(output.join('\n')).not.toContain('Aline Kabeya');
+    expect(output.join('\n')).not.toContain('aline@example.test');
   });
 });

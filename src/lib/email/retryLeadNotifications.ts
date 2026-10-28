@@ -1,4 +1,5 @@
 import type { LeadPayloadAdapter } from '../../../app/api/leads/route';
+import { appLogger, type StructuredLogger } from '../observability/logger';
 import type { LeadNotification } from './sendLeadNotification';
 
 type RetryPayload = Pick<LeadPayloadAdapter, 'find'> &
@@ -9,12 +10,15 @@ export async function processLeadNotificationRetries({
   notify,
   now = () => new Date(),
   maxAttempts = 3,
+  logger: injectedLogger,
 }: {
   payload: RetryPayload;
   notify: (lead: LeadNotification) => Promise<void>;
   now?: () => Date;
   maxAttempts?: number;
+  logger?: StructuredLogger;
 }) {
+  const logger = injectedLogger ?? appLogger;
   const currentTime = now();
   const due = await payload.find({
     collection: 'leads',
@@ -58,8 +62,16 @@ export async function processLeadNotificationRetries({
         },
       });
       sent += 1;
+      logger.info('lead.notification_retry_succeeded', {
+        leadId: lead.id,
+        attempts: attempts + 1,
+      });
     } catch {
       const nextAttempts = attempts + 1;
+      logger.error('lead.notification_retry_failed', {
+        leadId: lead.id,
+        attempts: nextAttempts,
+      });
       await payload.update({
         collection: 'leads',
         id: lead.id,
@@ -74,6 +86,12 @@ export async function processLeadNotificationRetries({
           notificationAlertRequired: nextAttempts >= maxAttempts,
         },
       });
+      if (nextAttempts >= maxAttempts) {
+        logger.warn('lead.notification_retry_alert_required', {
+          leadId: lead.id,
+          attempts: nextAttempts,
+        });
+      }
       failed += 1;
     }
   }

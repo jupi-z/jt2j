@@ -104,3 +104,54 @@ Final `pnpm audit --prod` remains non-zero with exactly one low finding:
 - `deepmerge@4.3.1`, reached through `payload` and `@payloadcms/db-postgres`/`@payloadcms/drizzle`/cloud-storage paths; the audit reports **no patched version**. Payload and its official packages are already at the current published `3.92.1` used by this worktree, so no speculative override was applied. Compensating controls are limited to the private Payload admin boundary, published/approved content access rules, and avoiding untrusted merge inputs. Release gate: keep the dependency audit visible as unresolved low risk and re-run `pnpm audit --prod` after every Payload upgrade; do not claim a clean audit until this advisory has an upstream fix or a reviewed isolation/remediation.
 
 Audit result: `pnpm audit --prod` exit 1, `1 vulnerabilities found`, `Severity: 1 low`.
+
+## Fix round 2 — retry notification logger integration
+
+The remaining Important finding is addressed in `src/lib/email/retryLeadNotifications.ts`:
+
+- Added an injectable `StructuredLogger`, defaulting to `appLogger`.
+- Retry success emits `lead.notification_retry_succeeded` with only the lead id and attempt count.
+- Retry failure emits `lead.notification_retry_failed` with only the lead id and attempt count.
+- Terminal retry failure emits `lead.notification_retry_alert_required` at warn level with only the lead id and attempt count.
+- Raw errors, error messages, PII, form fields and secrets are never passed to the logger.
+- Retry persistence, attempt scheduling and terminal-alert state behavior are unchanged.
+- Added a regression test that injects `smtp-password=do-not-emit`, parses the emitted JSON, verifies structured event/level/timestamp fields, and proves the secret and lead fields are absent.
+
+## Fix round 2 — exact validation evidence
+
+```text
+pnpm exec vitest run tests/leads/lead-route.test.ts --pool=threads --maxWorkers=1
+Before implementation: 1 failed, 16 passed — expected [] to have a length of 2.
+After implementation: 1 test file passed, 17 tests passed.
+
+pnpm exec vitest run tests/security/security.test.ts tests/leads/lead-route.test.ts tests/unit/env.test.ts --pool=threads --maxWorkers=1
+3 test files passed, 31 tests passed.
+
+pnpm test
+19 test files passed, 169 tests passed.
+Existing Payload warnings: no email adapter provided; no test failures.
+
+pnpm typecheck
+exit 0; next typegen and tsc --noEmit completed.
+
+pnpm lint
+exit 0; eslint --max-warnings 0 completed with no errors.
+
+git diff --check
+exit 0.
+```
+
+Post-adjustment verification after moving failure logging before the persistence update:
+
+```text
+pnpm exec vitest run tests/leads/lead-route.test.ts --pool=threads --maxWorkers=1
+1 test file passed, 17 tests passed.
+
+pnpm typecheck
+exit 0; next typegen and tsc --noEmit completed.
+
+pnpm lint
+exit 0; eslint --max-warnings 0 completed with no errors.
+```
+
+The post-adjustment full-suite rerun was started with `pnpm test` on the final code, but was intentionally interrupted after the user requested not to wait indefinitely; it exited 1 from the interruption before reporting a final test count. The completed full suite immediately before the final log-order-only adjustment was 19 test files / 169 tests passed; the post-adjustment focused retry file, typecheck and lint all passed.
