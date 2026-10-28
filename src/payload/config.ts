@@ -49,7 +49,10 @@ export function createPayloadConfig(
   return buildConfig({
     secret: env.PAYLOAD_SECRET,
     sharp,
-    admin: { user: 'users' },
+    admin: {
+      user: 'users',
+      meta: { titleSuffix: ' — JT2J Editorial' },
+    },
     localization: {
       locales: [...locales],
       defaultLocale: 'fr',

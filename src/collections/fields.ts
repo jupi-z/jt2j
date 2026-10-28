@@ -1,11 +1,14 @@
 import type { Field } from 'payload';
 import { privateField } from '../access/roles';
+import { TranslationStatus } from '../admin/components/TranslationStatus';
+import { PublicationChecklist } from '../admin/components/PublicationChecklist';
 
 export const text = (name: string, required = true): Field => ({
   name,
   type: 'text',
   localized: true,
   required,
+  admin: { components: { afterInput: TranslationStatus as never } },
 });
 export const publicationFields = (): Field[] => [
   {
@@ -16,6 +19,7 @@ export const publicationFields = (): Field[] => [
     admin: {
       description:
         'Only a publisher or administrator may approve the complete bilingual record.',
+      components: { afterInput: PublicationChecklist as never },
     },
   },
   {

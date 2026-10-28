@@ -1,5 +1,6 @@
 import { APIError, type CollectionConfig } from 'payload';
 import { adminOnly, adminField, hasRole, roles } from '../access/roles';
+import { requireAuthenticatedAdmin } from '../admin/hooks/requireRole';
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -23,7 +24,7 @@ export const Users: CollectionConfig = {
     ],
   },
   access: {
-    admin: ({ req }) => hasRole(req.user, roles),
+    admin: requireAuthenticatedAdmin,
     create: adminOnly,
     delete: adminOnly,
     read: ({ req }) =>

@@ -19,6 +19,7 @@ import {
 } from '../content/types';
 import { canPublish } from '../access/roles';
 import { publicRoutes } from '../routing/catalog';
+import { getPublicationChecklist } from '../admin/hooks/publicationChecks';
 
 type RecordData = Record<string, unknown>;
 type ContentKind =
@@ -268,6 +269,20 @@ async function enforce(
         `Complete bilingual content required: ${check.error.issues.map((i) => i.path.join('.')).join(', ')}`,
         400,
       );
+    if (['pages', 'divisions', 'services', 'faqs', 'legal-documents'].includes(kind)) {
+      const checklist = getPublicationChecklist(next, {
+        requireSEO: ['pages', 'divisions', 'services', 'legal-documents'].includes(kind),
+        requireLegal: true,
+      });
+      const incomplete = checklist
+        .filter((item) => !item.complete)
+        .map((item) => item.key);
+      if (incomplete.length)
+        throw new APIError(
+          `Publication checklist incomplete: ${incomplete.join(', ')}`,
+          400,
+        );
+    }
     if (
       kind === 'legal-documents' &&
       !claims.data?.some(

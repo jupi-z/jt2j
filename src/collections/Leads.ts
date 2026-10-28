@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload';
 import { adminOnly, sales } from '../access/roles';
+import { LeadStatusSelect } from '../admin/components/LeadStatusSelect';
 
 export const Leads: CollectionConfig = {
   slug: 'leads',
@@ -30,6 +31,7 @@ export const Leads: CollectionConfig = {
       defaultValue: 'new',
       required: true,
       options: ['new', 'assigned', 'in-progress', 'closed', 'spam'],
+      admin: { components: { Field: LeadStatusSelect as never } },
     },
     {
       name: 'notificationStatus',

@@ -13,6 +13,7 @@ export default defineConfig({
       'tests/public/**/*.spec.tsx',
       'tests/payload/**/*.test.ts',
       'tests/leads/**/*.test.ts',
+      'tests/admin/**/*.spec.ts',
       'src/seed/**/*.test.ts',
     ],
     environment: 'node',

@@ -68,15 +68,27 @@ export async function approve(
           draft: true,
           depth: 0,
         });
+  const claims = (doc.claims ?? []).map((c) => ({
+    ...c,
+    status: 'approved' as const,
+    approvedBy: 'Test publisher',
+    evidence: 'Test-only editorial evidence',
+  }));
+  if (
+    collection !== 'media' &&
+    !claims.some((claim) => claim.category === 'legal')
+  )
+    claims.push({
+      category: 'legal',
+      source: 'Test-only legal approval',
+      status: 'approved' as const,
+      approvedBy: 'Test publisher',
+      evidence: 'Test-only legal evidence',
+    });
   const data = {
     _status: 'published' as const,
     publicationApproved: true,
-    claims: (doc.claims ?? []).map((c) => ({
-      ...c,
-      status: 'approved' as const,
-      approvedBy: 'Test publisher',
-      evidence: 'Test-only editorial evidence',
-    })),
+    claims,
   };
   if (collection === 'site-settings')
     return cms.payload.updateGlobal({

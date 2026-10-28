@@ -16,6 +16,8 @@ export const isEditorial = (user: Actor) =>
 export const canPublish = (user: Actor) =>
   hasRole(user, ['admin', 'publisher']);
 export const adminOnly: Access = ({ req }) => hasRole(req.user, ['admin']);
+export const authenticatedStaff: Access = ({ req }) =>
+  Boolean(req.user?.id) && hasRole(req.user, roles);
 export const editorial: Access = ({ req }) => isEditorial(req.user);
 export const publishers: Access = ({ req }) => canPublish(req.user);
 export const sales: Access = ({ req }) => hasRole(req.user, ['admin', 'sales']);
