@@ -6,8 +6,9 @@ routing, CMS, database, and deployment belong to later tasks.
 
 ## Local setup
 
-Use Node.js 22 or 24 and pnpm 11.25.0 (pinned in `package.json`). Install that
-pnpm version with `npm install --global pnpm@11.25.0` if needed.
+Use Node.js 22.12.0 or later within 22.x, or Node.js 24.x, and pnpm 11.25.0
+(pinned in `package.json`). Install that pnpm version with
+`npm install --global pnpm@11.25.0` if needed.
 
 ```powershell
 pnpm install --frozen-lockfile
