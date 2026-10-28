@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createLeadPostHandler,
+  createMemoryRateLimitStore,
   type LeadPayloadAdapter,
 } from '../../app/api/leads/route';
+import { processLeadNotificationRetries } from '../../src/lib/email/retryLeadNotifications';
 
 const validRequest = {
   name: 'Aline Kabeya',
@@ -33,6 +35,7 @@ function payloadAdapter(overrides: Partial<LeadPayloadAdapter> = {}) {
   return {
     find: vi.fn().mockResolvedValue({ docs: [] }),
     create: vi.fn().mockImplementation(async ({ data }) => ({ id: 42, ...data })),
+    update: vi.fn().mockResolvedValue({}),
     ...overrides,
   } satisfies LeadPayloadAdapter;
 }
@@ -118,6 +121,34 @@ describe('POST /api/leads', () => {
     });
   });
 
+  it('does not let callers rotate the rate-limit key with forwarded headers by default', async () => {
+    const payload = payloadAdapter();
+    const post = createLeadPostHandler({
+      payload,
+      notify: vi.fn().mockResolvedValue(undefined),
+      rateLimit: { max: 1, windowMs: 60_000 },
+    });
+
+    expect((await post(request(validRequest, '198.51.100.10'))).status).toBe(201);
+    const response = await post(request({ ...validRequest, email: 'rotated@example.test' }, '203.0.113.20'));
+
+    expect(response.status).toBe(429);
+  });
+
+  it('bounds and expires the in-memory fallback rate-limit store', async () => {
+    let now = 1_000;
+    const store = createMemoryRateLimitStore({ maxEntries: 2, now: () => now });
+
+    await store.consume('one', { max: 5, windowMs: 100 }, now);
+    await store.consume('two', { max: 5, windowMs: 100 }, now);
+    await store.consume('three', { max: 5, windowMs: 100 }, now);
+    expect(store.size()).toBeLessThanOrEqual(2);
+
+    now += 101;
+    await store.consume('four', { max: 5, windowMs: 100 }, now);
+    expect(store.size()).toBe(1);
+  });
+
   it('returns a safe duplicate response and does not send a second notification', async () => {
     const payload = payloadAdapter({
       find: vi.fn().mockResolvedValue({ docs: [{ id: 7 }] }),
@@ -155,6 +186,41 @@ describe('POST /api/leads', () => {
       },
     });
     expect(JSON.stringify(body)).not.toContain('mailto:');
+    expect(payload.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'leads',
+        id: 42,
+        data: expect.objectContaining({
+          notificationStatus: 'retry_pending',
+          notificationAttempts: 1,
+          notificationAlertRequired: true,
+        }),
+      }),
+    );
+  });
+
+  it('uses the database uniqueness result to make concurrent duplicate submissions idempotent', async () => {
+    let createCalls = 0;
+    const payload = payloadAdapter({
+      create: vi.fn().mockImplementation(async ({ data }) => {
+        createCalls += 1;
+        if (createCalls === 2) {
+          const error = Object.assign(new Error('duplicate key'), { code: '23505' });
+          throw error;
+        }
+        return { id: 42, ...data };
+      }),
+    });
+    const post = createLeadPostHandler({ payload, notify: vi.fn().mockResolvedValue(undefined) });
+
+    const responses = await Promise.all([
+      post(request(validRequest)),
+      post(request(validRequest)),
+    ]);
+    const statuses = responses.map((response) => response.status).sort();
+
+    expect(statuses).toEqual([201, 409]);
+    expect(createCalls).toBe(2);
   });
 
   it('returns a safe server error when Payload persistence is unavailable', async () => {
@@ -171,5 +237,42 @@ describe('POST /api/leads', () => {
       error: { code: 'PERSISTENCE_UNAVAILABLE', message: 'Your request could not be saved.' },
     });
     expect(JSON.stringify(body)).not.toContain('database password');
+  });
+
+  it('retries due notifications and marks them sent durably', async () => {
+    const payload = payloadAdapter({
+      find: vi.fn().mockResolvedValue({
+        docs: [{
+          id: 42,
+          name: 'Aline Kabeya',
+          email: 'aline@example.test',
+          message: validRequest.message,
+          sourcePage: validRequest.sourcePage,
+          locale: 'fr',
+          notificationAttempts: 1,
+          notificationStatus: 'retry_pending',
+        }],
+      }),
+    });
+    const notify = vi.fn().mockResolvedValue(undefined);
+
+    const result = await processLeadNotificationRetries({
+      payload,
+      notify,
+      now: () => new Date('2026-10-28T10:10:00.000Z'),
+    });
+
+    expect(result).toEqual({ processed: 1, sent: 1, failed: 0 });
+    expect(notify).toHaveBeenCalledWith(expect.objectContaining({ id: 42 }));
+    expect(payload.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 42,
+        data: expect.objectContaining({
+          notificationStatus: 'sent',
+          notificationAttempts: 2,
+          notificationAlertRequired: false,
+        }),
+      }),
+    );
   });
 });

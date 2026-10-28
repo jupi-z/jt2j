@@ -41,37 +41,43 @@ export function ContactForm({ locale, sourcePage }: Props) {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus('sending');
-    const form = new FormData(event.currentTarget);
-    const response = await fetch('/api/leads', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        name: form.get('name'),
-        email: form.get('email'),
-        phone: form.get('phone'),
-        company: form.get('company'),
-        message: form.get('message'),
-        locale,
-        sourcePage,
-        consent: form.get('consent') === 'on',
-        website: form.get('website'),
-      }),
-    });
-    const body = (await response.json()) as {
-      confirmationId?: string;
-      error?: { code?: string; confirmationId?: string };
-    };
-    if (response.ok && body.confirmationId) {
-      setConfirmationId(body.confirmationId);
-      setStatus('idle');
-      return;
+    try {
+      const form = new FormData(event.currentTarget);
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: form.get('name'),
+          email: form.get('email'),
+          phone: form.get('phone'),
+          company: form.get('company'),
+          message: form.get('message'),
+          locale,
+          sourcePage,
+          consent: form.get('consent') === 'on',
+          website: form.get('website'),
+        }),
+      });
+      const body = (await response.json()) as {
+        confirmationId?: string;
+        error?: { code?: string; confirmationId?: string };
+      };
+      if (response.ok && body.confirmationId) {
+        setConfirmationId(body.confirmationId);
+        setStatus('idle');
+        return;
+      }
+      if (body.error?.code === 'NOTIFICATION_FAILED') {
+        setConfirmationId(body.error.confirmationId);
+        setStatus('notification-error');
+        return;
+      }
+      setStatus('error');
+    } catch {
+      setStatus('error');
+    } finally {
+      setStatus((current) => (current === 'sending' ? 'error' : current));
     }
-    if (body.error?.code === 'NOTIFICATION_FAILED') {
-      setConfirmationId(body.error.confirmationId);
-      setStatus('notification-error');
-      return;
-    }
-    setStatus('error');
   }
 
   if (confirmationId && status === 'idle') return <LeadConfirmation confirmationId={confirmationId} locale={locale} />;

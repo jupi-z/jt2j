@@ -454,10 +454,16 @@ export interface Lead {
   company?: string | null;
   message: string;
   sourcePage: string;
+  idempotencyKey?: string | null;
   locale: 'fr' | 'en';
   division?: (number | null) | Division;
   service?: (number | null) | Service;
   status: 'new' | 'assigned' | 'in-progress' | 'closed' | 'spam';
+  notificationStatus?: ('pending' | 'sent' | 'retry_pending') | null;
+  notificationAttempts?: number | null;
+  notificationNextAttemptAt?: string | null;
+  notificationLastError?: string | null;
+  notificationAlertRequired?: boolean | null;
   assignee?: (number | null) | User;
   internalNotes?: string | null;
   consent: {
@@ -868,10 +874,16 @@ export interface LeadsSelect<T extends boolean = true> {
   company?: T;
   message?: T;
   sourcePage?: T;
+  idempotencyKey?: T;
   locale?: T;
   division?: T;
   service?: T;
   status?: T;
+  notificationStatus?: T;
+  notificationAttempts?: T;
+  notificationNextAttemptAt?: T;
+  notificationLastError?: T;
+  notificationAlertRequired?: T;
   assignee?: T;
   internalNotes?: T;
   consent?:
