@@ -3,7 +3,10 @@ import { adminOnly, sales } from '../access/roles';
 
 export const Leads: CollectionConfig = {
   slug: 'leads',
-  admin: { useAsTitle: 'name' },
+  admin: {
+    useAsTitle: 'name',
+    defaultColumns: ['name', 'email', 'locale', 'sourcePage', 'status', 'createdAt'],
+  },
   access: { create: sales, read: sales, update: sales, delete: adminOnly },
   fields: [
     { name: 'name', type: 'text', required: true },
@@ -11,7 +14,7 @@ export const Leads: CollectionConfig = {
     { name: 'phone', type: 'text' },
     { name: 'company', type: 'text' },
     { name: 'message', type: 'textarea', required: true },
-    { name: 'sourcePage', type: 'text', required: true },
+    { name: 'sourcePage', type: 'text', required: true, maxLength: 240 },
     { name: 'locale', type: 'select', required: true, options: ['fr', 'en'] },
     { name: 'division', type: 'relationship', relationTo: 'divisions' },
     { name: 'service', type: 'relationship', relationTo: 'services' },

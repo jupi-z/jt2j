@@ -6,6 +6,7 @@ import { DivisionDetail } from '../divisions/DivisionDetail';
 import { ServicesPage } from '../services/ServicesPage';
 import { ServiceDetail } from '../services/ServiceDetail';
 import { FaqPage } from '../faq/FaqPage';
+import { ContactForm } from '../contact/ContactForm';
 import {
   PageHero,
   PageBreadcrumbs,
@@ -68,10 +69,19 @@ export function PublicRouteContent({
       <>
         <PageHero
           title={
-            locale === 'fr' ? 'Publication à venir' : 'Publication coming soon'
+            path === '/contact'
+              ? 'Contact'
+              : locale === 'fr'
+                ? 'Publication à venir'
+                : 'Publication coming soon'
           }
           lead={dictionary.placeholder}
         />
+        {path === '/contact' && (
+          <section className="wrap section">
+            <ContactForm locale={locale} sourcePage={`/${locale}/contact`} />
+          </section>
+        )}
         {path !== '/contact' && (
           <ContactCallout label={contactLabel} href={contactHref} />
         )}
@@ -136,6 +146,11 @@ export function PublicRouteContent({
       <PageBreadcrumbs locale={locale} title={page.title} />
       <PageHero title={page.title} lead={page.lead} variant="commitment" />
       <ContentSections sections={page.sections} />
+      {path === '/contact' && (
+        <section className="wrap section">
+          <ContactForm locale={locale} sourcePage={`/${locale}/contact`} />
+        </section>
+      )}
       {page.values && (
         <section className="wrap section">
           <h2>{locale === 'fr' ? 'Nos valeurs' : 'Our values'}</h2>
