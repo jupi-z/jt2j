@@ -78,6 +78,32 @@ describe('production security safeguards', () => {
     );
   });
 
+  it('stops reading a streamed body as soon as the byte cap is exceeded', async () => {
+    const security = await loadSecurityModule<
+      typeof import('../../src/lib/security/inputLimits')
+    >('../../src/lib/security/inputLimits');
+    const first = new Uint8Array(33);
+    let reads = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        reads += 1;
+        if (reads === 1) controller.enqueue(first);
+        else controller.enqueue(new Uint8Array(1));
+      },
+    });
+    const request = new Request('https://example.test/api/leads', {
+      method: 'POST',
+      body: stream,
+      // Required by the Fetch implementation for a streamed request body.
+      // @ts-expect-error RequestInit duplex is not in the current DOM types.
+      duplex: 'half',
+    });
+    await expect(security!.readJsonWithLimit(request, 32)).rejects.toThrow(
+      'REQUEST_BODY_TOO_LARGE',
+    );
+    expect(reads).toBe(1);
+  });
+
   it('redacts PII, credentials and tokens from structured logs', async () => {
     const security = await loadSecurityModule<
       typeof import('../../src/lib/observability/logger')
@@ -99,6 +125,48 @@ describe('production security safeguards', () => {
     expect(output[0]).toContain('[REDACTED]');
   });
 
+  it('uses the redacted logger on an application persistence error', async () => {
+    const { createLogger } = await import('../../src/lib/observability/logger');
+    const { createLeadPostHandler } = await import('../../app/api/leads/route');
+    const output: string[] = [];
+    const payload = {
+      find: async () => {
+        throw new Error('database password leaked here');
+      },
+      create: async () => ({ id: 1 }),
+    };
+    const post = createLeadPostHandler({
+      payload,
+      notify: async () => undefined,
+      logger: createLogger((line) => output.push(line)),
+    });
+    process.env.TRUST_PROXY = 'true';
+    const response = await post(
+      new Request('https://example.test/api/leads', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-forwarded-for': '198.51.100.10',
+        },
+        body: JSON.stringify({
+          name: 'Aline Kabeya',
+          email: 'aline@example.test',
+          phone: '',
+          company: '',
+          message: 'Nous souhaitons échanger sur vos services.',
+          locale: 'fr',
+          sourcePage: '/fr/contact',
+          consent: true,
+          website: '',
+        }),
+      }),
+    );
+    expect(response.status).toBe(503);
+    expect(output.join('\n')).toContain('lead.persistence_failed');
+    expect(output.join('\n')).not.toContain('database password leaked here');
+    delete process.env.TRUST_PROXY;
+  });
+
   it('rejects unsafe production environment configuration without exposing values', async () => {
     const security = await loadSecurityModule<
       typeof import('../../src/lib/security/environment')
@@ -117,6 +185,15 @@ describe('production security safeguards', () => {
         PAYLOAD_SECRET: 'dont-log-this',
       }),
     ).not.toThrowError(/dont-log-this/);
+    expect(() =>
+      security!.assertProductionEnvironment({
+        NODE_ENV: 'production',
+        SITE_URL: 'https://example.test',
+        DATABASE_URL: 'postgresql://example',
+        PAYLOAD_SECRET: 'same-secret'.repeat(4),
+        CSRF_SECRET: 'same-secret'.repeat(4),
+      }),
+    ).toThrow(/distinct|different|CSRF_SECRET/i);
   });
 
   it('keeps existing admin, draft and input-limit boundaries explicit', () => {

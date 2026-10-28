@@ -16,6 +16,7 @@ import {
 import { validateCsrfRequest } from '@/lib/security/csrf';
 import { readJsonWithLimit } from '@/lib/security/inputLimits';
 import { publicMutationRateLimit } from '@/lib/security/rateLimit';
+import { appLogger, type StructuredLogger } from '@/lib/observability/logger';
 
 export interface LeadPayloadAdapter {
   find(args: {
@@ -62,6 +63,7 @@ export interface LeadPostDependencies {
   rateLimit?: LeadRateLimitOptions;
   rateLimitStore?: LeadRateLimitStore;
   csrf?: { secret: string; required?: boolean };
+  logger?: StructuredLogger;
 }
 
 type MemoryRateLimitEntry = { timestamps: number[]; lastSeen: number };
@@ -301,6 +303,7 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
   const rateLimit = dependencies.rateLimit ?? getDefaultRateLimit();
   const rateLimitStore =
     dependencies.rateLimitStore ?? createMemoryRateLimitStore();
+  const logger = dependencies.logger ?? appLogger;
 
   return async function post(request: Request): Promise<Response> {
     const currentTime = now();
@@ -320,6 +323,7 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
         );
       }
     } catch {
+      logger.error('lead.rate_limit_unavailable', { operation: 'consume' });
       return reply(
         {
           error: {
@@ -328,6 +332,18 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
           },
         },
         503,
+      );
+    }
+    if (!identity.key) {
+      return reply(
+        {
+          error: {
+            code: 'RATE_LIMIT_COOKIE_REQUIRED',
+            message: 'Please retry this request.',
+          },
+        },
+        428,
+        { 'retry-after': '0' },
       );
     }
     if (rateLimited) {
@@ -460,6 +476,10 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
           409,
         );
       }
+      logger.error('lead.persistence_failed', {
+        operation: 'create',
+        errorName: error instanceof Error ? error.name : 'unknown',
+      });
       return reply(
         {
           error: {
@@ -492,7 +512,11 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
           notificationAlertRequired: false,
         },
       });
-    } catch {
+    } catch (error) {
+      logger.error('lead.notification_failed', {
+        operation: 'notify',
+        errorName: error instanceof Error ? error.name : 'unknown',
+      });
       try {
         await dependencies.payload.update?.({
           collection: 'leads',

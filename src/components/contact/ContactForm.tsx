@@ -53,24 +53,28 @@ export function ContactForm({ locale, sourcePage }: Props) {
       const csrfBody = csrfResponse.ok
         ? ((await csrfResponse.json()) as { token?: string })
         : {};
-      const response = await fetch('/api/leads', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          ...(csrfBody.token ? { 'x-csrf-token': csrfBody.token } : {}),
-        },
-        body: JSON.stringify({
-          name: form.get('name'),
-          email: form.get('email'),
-          phone: form.get('phone'),
-          company: form.get('company'),
-          message: form.get('message'),
-          locale,
-          sourcePage,
-          consent: form.get('consent') === 'on',
-          website: form.get('website'),
-        }),
+      const requestBody = JSON.stringify({
+        name: form.get('name'),
+        email: form.get('email'),
+        phone: form.get('phone'),
+        company: form.get('company'),
+        message: form.get('message'),
+        locale,
+        sourcePage,
+        consent: form.get('consent') === 'on',
+        website: form.get('website'),
       });
+      const post = () =>
+        fetch('/api/leads', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(csrfBody.token ? { 'x-csrf-token': csrfBody.token } : {}),
+          },
+          body: requestBody,
+        });
+      let response = await post();
+      if (response.status === 428) response = await post();
       const body = (await response.json()) as {
         confirmationId?: string;
         error?: { code?: string; confirmationId?: string };

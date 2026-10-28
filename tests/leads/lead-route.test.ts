@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createLeadPostHandler,
   createMemoryRateLimitStore,
@@ -41,19 +41,48 @@ function request(
 function payloadAdapter(overrides: Partial<LeadPayloadAdapter> = {}) {
   return {
     find: vi.fn().mockResolvedValue({ docs: [] }),
-    create: vi.fn().mockImplementation(async ({ data }) => ({ id: 42, ...data })),
+    create: vi
+      .fn()
+      .mockImplementation(async ({ data }) => ({ id: 42, ...data })),
     update: vi.fn().mockResolvedValue({}),
     ...overrides,
   } satisfies LeadPayloadAdapter;
 }
 
 describe('POST /api/leads', () => {
-  beforeEach(() => vi.restoreAllMocks());
+  beforeEach(() => {
+    process.env.TRUST_PROXY = 'true';
+    vi.restoreAllMocks();
+  });
+  afterEach(() => {
+    delete process.env.TRUST_PROXY;
+  });
+
+  it('does not accept a first anonymous mutation before its signed rate-limit cookie is returned', async () => {
+    process.env.TRUST_PROXY = 'false';
+    const payload = payloadAdapter();
+    const post = createLeadPostHandler({ payload, notify: vi.fn() });
+
+    const response = await post(request(validRequest));
+    expect(response.status).toBe(428);
+    expect(response.headers.get('set-cookie')).toMatch(/^jt2j_lead_rl=/);
+    expect(await response.json()).toEqual({
+      error: {
+        code: 'RATE_LIMIT_COOKIE_REQUIRED',
+        message: 'Please retry this request.',
+      },
+    });
+    expect(payload.create).not.toHaveBeenCalled();
+  });
 
   it('persists the normalized request with locale, source and server consent', async () => {
     const payload = payloadAdapter();
     const notify = vi.fn().mockResolvedValue(undefined);
-    const post = createLeadPostHandler({ payload, notify, now: () => new Date('2026-10-28T10:00:00.000Z') });
+    const post = createLeadPostHandler({
+      payload,
+      notify,
+      now: () => new Date('2026-10-28T10:00:00.000Z'),
+    });
 
     const response = await post(request(validRequest));
     const body = await response.json();
@@ -89,7 +118,6 @@ describe('POST /api/leads', () => {
     const body = await response.json();
 
     expect(response.status).toBe(400);
-    expect(response.headers.get('set-cookie')).toMatch(/^jt2j_lead_rl=/);
     expect(body).toEqual({
       error: { code: 'VALIDATION_ERROR', message: 'Invalid contact request.' },
     });
@@ -106,7 +134,6 @@ describe('POST /api/leads', () => {
     const body = await response.json();
 
     expect(response.status).toBe(202);
-    expect(response.headers.get('set-cookie')).toMatch(/^jt2j_lead_rl=/);
     expect(body).toEqual({ accepted: true });
     expect(payload.create).not.toHaveBeenCalled();
     expect(notify).not.toHaveBeenCalled();
@@ -121,10 +148,10 @@ describe('POST /api/leads', () => {
     });
 
     const first = await post(request(validRequest));
-    const cookie = first.headers.get('set-cookie')?.split(';')[0];
     expect(first.status).toBe(201);
-    expect((await post(request({ ...validRequest, email: 'other@example.test' }, '198.51.100.10', 'JT2J test browser', cookie!))).status).toBe(201);
-    const response = await post(request({ ...validRequest, email: 'third@example.test' }, '198.51.100.10', 'JT2J test browser', cookie!));
+    const response = await post(
+      request({ ...validRequest, email: 'other@example.test' }),
+    );
     const body = await response.json();
 
     expect(response.status).toBe(429);
@@ -134,6 +161,7 @@ describe('POST /api/leads', () => {
   });
 
   it('does not let callers rotate the rate-limit key with forwarded headers by default', async () => {
+    process.env.TRUST_PROXY = 'false';
     const payload = payloadAdapter();
     const post = createLeadPostHandler({
       payload,
@@ -143,19 +171,34 @@ describe('POST /api/leads', () => {
 
     const first = await post(request(validRequest, '198.51.100.10'));
     const cookie = first.headers.get('set-cookie')?.split(';')[0];
-    expect(first.status).toBe(201);
+    expect(first.status).toBe(428);
     expect(cookie).toMatch(/^jt2j_lead_rl=/);
-    expect((await post(
-      request({ ...validRequest, email: 'rotated@example.test' }, '203.0.113.20', 'Different browser', cookie!),
-    )).status).toBe(201);
+    expect(
+      (
+        await post(
+          request(
+            { ...validRequest, email: 'rotated@example.test' },
+            '203.0.113.20',
+            'Different browser',
+            cookie!,
+          ),
+        )
+      ).status,
+    ).toBe(201);
     const response = await post(
-      request({ ...validRequest, email: 'rotated-again@example.test' }, '203.0.113.20', 'Different browser', cookie!),
+      request(
+        { ...validRequest, email: 'rotated-again@example.test' },
+        '203.0.113.20',
+        'Different browser',
+        cookie!,
+      ),
     );
 
     expect(response.status).toBe(429);
   });
 
   it('keeps fallback rate-limit buckets separate for distinct clients without trusted proxy headers', async () => {
+    process.env.TRUST_PROXY = 'false';
     const payload = payloadAdapter();
     const post = createLeadPostHandler({
       payload,
@@ -163,16 +206,45 @@ describe('POST /api/leads', () => {
       rateLimit: { max: 1, windowMs: 60_000 },
     });
 
-    const first = await post(request(validRequest, '198.51.100.10', 'Client A'));
+    const first = await post(
+      request(validRequest, '198.51.100.10', 'Client A'),
+    );
     const second = await post(
-      request({ ...validRequest, email: 'other@example.test' }, '203.0.113.20', 'Client B'),
+      request(
+        { ...validRequest, email: 'other@example.test' },
+        '203.0.113.20',
+        'Client B',
+      ),
     );
 
-    expect(first.status).toBe(201);
-    expect(second.status).toBe(201);
+    expect(first.status).toBe(428);
+    expect(second.status).toBe(428);
+    const firstCookie = first.headers.get('set-cookie')?.split(';')[0];
+    const secondCookie = second.headers.get('set-cookie')?.split(';')[0];
+    expect(firstCookie).not.toBe(secondCookie);
+    expect(
+      (
+        await post(
+          request(validRequest, '198.51.100.10', 'Client A', firstCookie!),
+        )
+      ).status,
+    ).toBe(201);
+    expect(
+      (
+        await post(
+          request(
+            { ...validRequest, email: 'other@example.test' },
+            '203.0.113.20',
+            'Client B',
+            secondCookie!,
+          ),
+        )
+      ).status,
+    ).toBe(201);
   });
 
   it('allows no-cookie fallback clients independently, then enforces only their signed cookie', async () => {
+    process.env.TRUST_PROXY = 'false';
     const payload = payloadAdapter();
     const post = createLeadPostHandler({
       payload,
@@ -180,24 +252,44 @@ describe('POST /api/leads', () => {
       rateLimit: { max: 1, windowMs: 60_000 },
     });
 
-    const first = await post(request(validRequest, '198.51.100.10', 'Same browser'));
+    const first = await post(
+      request(validRequest, '198.51.100.10', 'Same browser'),
+    );
     const second = await post(
-      request({ ...validRequest, email: 'other@example.test' }, '203.0.113.20', 'Same browser'),
+      request(
+        { ...validRequest, email: 'other@example.test' },
+        '203.0.113.20',
+        'Same browser',
+      ),
     );
     const firstCookie = first.headers.get('set-cookie')?.split(';')[0];
     const secondCookie = second.headers.get('set-cookie')?.split(';')[0];
 
-    expect(first.status).toBe(201);
-    expect(second.status).toBe(201);
+    expect(first.status).toBe(428);
+    expect(second.status).toBe(428);
     expect(firstCookie).toMatch(/^jt2j_lead_rl=/);
     expect(secondCookie).toMatch(/^jt2j_lead_rl=/);
     expect(firstCookie).not.toBe(secondCookie);
 
-    expect((await post(
-      request({ ...validRequest, email: 'third@example.test' }, '192.0.2.30', 'Same browser', firstCookie!),
-    )).status).toBe(201);
+    expect(
+      (
+        await post(
+          request(
+            { ...validRequest, email: 'third@example.test' },
+            '192.0.2.30',
+            'Same browser',
+            firstCookie!,
+          ),
+        )
+      ).status,
+    ).toBe(201);
     const followUp = await post(
-      request({ ...validRequest, email: 'fourth@example.test' }, '192.0.2.30', 'Same browser', firstCookie!),
+      request(
+        { ...validRequest, email: 'fourth@example.test' },
+        '192.0.2.30',
+        'Same browser',
+        firstCookie!,
+      ),
     );
     expect(followUp.status).toBe(429);
   });
@@ -228,7 +320,10 @@ describe('POST /api/leads', () => {
 
     expect(response.status).toBe(409);
     expect(body).toEqual({
-      error: { code: 'DUPLICATE_REQUEST', message: 'A similar request was already received.' },
+      error: {
+        code: 'DUPLICATE_REQUEST',
+        message: 'A similar request was already received.',
+      },
     });
     expect(payload.create).not.toHaveBeenCalled();
     expect(notify).not.toHaveBeenCalled();
@@ -248,7 +343,8 @@ describe('POST /api/leads', () => {
     expect(body).toEqual({
       error: {
         code: 'NOTIFICATION_FAILED',
-        message: 'Your request was saved, but notification is temporarily unavailable.',
+        message:
+          'Your request was saved, but notification is temporarily unavailable.',
         confirmationId: 'lead_42',
       },
     });
@@ -272,13 +368,18 @@ describe('POST /api/leads', () => {
       create: vi.fn().mockImplementation(async ({ data }) => {
         createCalls += 1;
         if (createCalls === 2) {
-          const error = Object.assign(new Error('duplicate key'), { code: '23505' });
+          const error = Object.assign(new Error('duplicate key'), {
+            code: '23505',
+          });
           throw error;
         }
         return { id: 42, ...data };
       }),
     });
-    const post = createLeadPostHandler({ payload, notify: vi.fn().mockResolvedValue(undefined) });
+    const post = createLeadPostHandler({
+      payload,
+      notify: vi.fn().mockResolvedValue(undefined),
+    });
 
     const responses = await Promise.all([
       post(request(validRequest)),
@@ -292,7 +393,9 @@ describe('POST /api/leads', () => {
 
   it('returns a safe server error when Payload persistence is unavailable', async () => {
     const payload = payloadAdapter({
-      find: vi.fn().mockRejectedValue(new Error('database password leaked here')),
+      find: vi
+        .fn()
+        .mockRejectedValue(new Error('database password leaked here')),
     });
     const post = createLeadPostHandler({ payload, notify: vi.fn() });
 
@@ -301,7 +404,10 @@ describe('POST /api/leads', () => {
 
     expect(response.status).toBe(503);
     expect(body).toEqual({
-      error: { code: 'PERSISTENCE_UNAVAILABLE', message: 'Your request could not be saved.' },
+      error: {
+        code: 'PERSISTENCE_UNAVAILABLE',
+        message: 'Your request could not be saved.',
+      },
     });
     expect(JSON.stringify(body)).not.toContain('database password');
   });
@@ -309,16 +415,18 @@ describe('POST /api/leads', () => {
   it('retries due notifications and marks them sent durably', async () => {
     const payload = payloadAdapter({
       find: vi.fn().mockResolvedValue({
-        docs: [{
-          id: 42,
-          name: 'Aline Kabeya',
-          email: 'aline@example.test',
-          message: validRequest.message,
-          sourcePage: validRequest.sourcePage,
-          locale: 'fr',
-          notificationAttempts: 1,
-          notificationStatus: 'retry_pending',
-        }],
+        docs: [
+          {
+            id: 42,
+            name: 'Aline Kabeya',
+            email: 'aline@example.test',
+            message: validRequest.message,
+            sourcePage: validRequest.sourcePage,
+            locale: 'fr',
+            notificationAttempts: 1,
+            notificationStatus: 'retry_pending',
+          },
+        ],
       }),
     });
     const notify = vi.fn().mockResolvedValue(undefined);
@@ -346,16 +454,18 @@ describe('POST /api/leads', () => {
   it('keeps the operational alert off for a retry failure before the ceiling', async () => {
     const payload = payloadAdapter({
       find: vi.fn().mockResolvedValue({
-        docs: [{
-          id: 42,
-          name: 'Aline Kabeya',
-          email: 'aline@example.test',
-          message: validRequest.message,
-          sourcePage: validRequest.sourcePage,
-          locale: 'fr',
-          notificationAttempts: 0,
-          notificationStatus: 'retry_pending',
-        }],
+        docs: [
+          {
+            id: 42,
+            name: 'Aline Kabeya',
+            email: 'aline@example.test',
+            message: validRequest.message,
+            sourcePage: validRequest.sourcePage,
+            locale: 'fr',
+            notificationAttempts: 0,
+            notificationStatus: 'retry_pending',
+          },
+        ],
       }),
     });
 
@@ -378,16 +488,18 @@ describe('POST /api/leads', () => {
   it('raises the operational alert on the terminal retry failure', async () => {
     const payload = payloadAdapter({
       find: vi.fn().mockResolvedValue({
-        docs: [{
-          id: 42,
-          name: 'Aline Kabeya',
-          email: 'aline@example.test',
-          message: validRequest.message,
-          sourcePage: validRequest.sourcePage,
-          locale: 'fr',
-          notificationAttempts: 2,
-          notificationStatus: 'retry_pending',
-        }],
+        docs: [
+          {
+            id: 42,
+            name: 'Aline Kabeya',
+            email: 'aline@example.test',
+            message: validRequest.message,
+            sourcePage: validRequest.sourcePage,
+            locale: 'fr',
+            notificationAttempts: 2,
+            notificationStatus: 'retry_pending',
+          },
+        ],
       }),
     });
 

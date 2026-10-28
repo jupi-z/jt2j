@@ -4,6 +4,9 @@ allowBuilds:
   '@swc/core': false
   esbuild: true
   unrs-resolver: true
+overrides:
+  dompurify: '>=3.4.17'
+  esbuild: '>=0.25.0'
 minimumReleaseAgeExclude:
   - '@payloadcms/db-postgres@3.92.1'
   - '@payloadcms/drizzle@3.92.1'

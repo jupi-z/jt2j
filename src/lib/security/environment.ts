@@ -10,6 +10,8 @@ export function assertProductionEnvironment(
     if (input[name] && input[name]!.length < 32)
       missing.push(`${name}(length)`);
   }
+  if (input.PAYLOAD_SECRET && input.PAYLOAD_SECRET === input.CSRF_SECRET)
+    missing.push('PAYLOAD_SECRET/CSRF_SECRET(distinct)');
   if (missing.length)
     throw new Error(`Invalid production environment: ${missing.join(', ')}`);
 }

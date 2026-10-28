@@ -40,3 +40,6 @@ export function createLogger(
       write('error', event, data),
   };
 }
+
+export type StructuredLogger = ReturnType<typeof createLogger>;
+export const appLogger = createLogger();
