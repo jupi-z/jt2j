@@ -1,0 +1,11 @@
+node_modules/
+.next/
+pnpm-lock.yaml
+.superpowers/
+docs/reference/
+JT2J_Prestige_Prototype.html
+playwright-report/
+test-results/
+coverage/
+next-env.d.ts
+docs/superpowers/
