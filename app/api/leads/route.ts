@@ -1,5 +1,5 @@
 import { getPayload } from 'payload';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { leadRequestSchema, type LeadRequest } from '@/lib/validation/leadSchema';
 import { sendLeadNotification, type LeadNotification } from '@/lib/email/sendLeadNotification';
 
@@ -116,6 +116,11 @@ function getDefaultRateLimit(): LeadRateLimitOptions {
 let defaultPayload: Promise<LeadPayloadAdapter> | undefined;
 let defaultPost: ((request: Request) => Promise<Response>) | undefined;
 const defaultMemoryRateLimitStore = createMemoryRateLimitStore();
+const fallbackRateLimitCookie = 'jt2j_lead_rl';
+const fallbackRateLimitSecret =
+  process.env.LEAD_RATE_LIMIT_COOKIE_SECRET ||
+  process.env.PAYLOAD_SECRET ||
+  randomBytes(32).toString('hex');
 
 async function getDefaultPayload(): Promise<LeadPayloadAdapter> {
   if (!defaultPayload) {
@@ -134,11 +139,43 @@ function json(data: unknown, status: number, headers?: HeadersInit) {
   });
 }
 
+function cookieValue(request: Request, name: string) {
+  const cookies = request.headers.get('cookie')?.split(';') || [];
+  return cookies
+    .map((cookie) => cookie.trim().split('='))
+    .find(([cookieName]) => cookieName === name)?.[1];
+}
+
+function signedFallbackCookie(value: string) {
+  const [token, signature] = value.split('.');
+  if (!token || !signature) return undefined;
+  const expected = createHmac('sha256', fallbackRateLimitSecret).update(token).digest('base64url');
+  if (
+    signature.length !== expected.length ||
+    !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  ) return undefined;
+  return token;
+}
+
 function clientKey(request: Request) {
-  if (process.env.TRUST_PROXY !== 'true') return 'untrusted-client';
+  if (process.env.TRUST_PROXY !== 'true') {
+    const existing = cookieValue(request, fallbackRateLimitCookie);
+    const signed = existing ? signedFallbackCookie(existing) : undefined;
+    const token = signed || randomBytes(18).toString('base64url');
+    const userAgent = request.headers.get('user-agent') || 'unknown-user-agent';
+    const language = request.headers.get('accept-language') || 'unknown-language';
+    const key = signed
+      ? `fallback-cookie:${signed}`
+      : `fallback-fingerprint:${createHash('sha256').update(`${userAgent}|${language}`).digest('hex')}`;
+    const signature = createHmac('sha256', fallbackRateLimitSecret).update(token).digest('base64url');
+    return {
+      key,
+      setCookie: `${fallbackRateLimitCookie}=${token}.${signature}; Max-Age=86400; Path=/; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`,
+    };
+  }
   const headerName = process.env.TRUSTED_PROXY_IP_HEADER || 'x-forwarded-for';
   const value = request.headers.get(headerName)?.split(',')[0]?.trim();
-  return value ? `trusted-proxy:${value}` : 'trusted-proxy:unknown';
+  return { key: value ? `trusted-proxy:${value}` : 'trusted-proxy:unknown' };
 }
 
 function idempotencyKey(request: LeadRequest) {
@@ -191,14 +228,20 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
 
   return async function post(request: Request): Promise<Response> {
     const currentTime = now();
+    const identity = clientKey(request);
+    const reply = (data: unknown, status: number, headers?: HeadersInit) =>
+      json(data, status, {
+        ...headers,
+        ...(identity.setCookie ? { 'set-cookie': identity.setCookie } : {}),
+      });
     let rateLimited: boolean;
     try {
-      rateLimited = await rateLimitStore.consume(clientKey(request), rateLimit, currentTime.getTime());
+      rateLimited = await rateLimitStore.consume(identity.key, rateLimit, currentTime.getTime());
     } catch {
-      return json({ error: { code: 'RATE_LIMIT_UNAVAILABLE', message: 'Contact service is temporarily unavailable.' } }, 503);
+      return reply({ error: { code: 'RATE_LIMIT_UNAVAILABLE', message: 'Contact service is temporarily unavailable.' } }, 503);
     }
     if (rateLimited) {
-      return json(
+      return reply(
         { error: { code: 'RATE_LIMITED', message: 'Too many contact requests.' } },
         429,
         { 'retry-after': String(Math.ceil(rateLimit.windowMs / 1000)) },
@@ -209,13 +252,13 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
     try {
       input = await request.json();
     } catch {
-      return json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid contact request.' } }, 400);
+      return reply({ error: { code: 'VALIDATION_ERROR', message: 'Invalid contact request.' } }, 400);
     }
     const parsed = leadRequestSchema.safeParse(input);
     if (!parsed.success) {
-      return json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid contact request.' } }, 400);
+      return reply({ error: { code: 'VALIDATION_ERROR', message: 'Invalid contact request.' } }, 400);
     }
-    if (parsed.data.website.trim() !== '') return json({ accepted: true }, 202);
+    if (parsed.data.website.trim() !== '') return reply({ accepted: true }, 202);
 
     const requestData = parsed.data;
     let lead: Record<string, unknown>;
@@ -234,7 +277,7 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
         limit: 1,
       });
       if (duplicate.docs.length > 0) {
-        return json(
+        return reply(
           { error: { code: 'DUPLICATE_REQUEST', message: 'A similar request was already received.' } },
           409,
         );
@@ -272,12 +315,12 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
-        return json(
+        return reply(
           { error: { code: 'DUPLICATE_REQUEST', message: 'A similar request was already received.' } },
           409,
         );
       }
-      return json(
+      return reply(
         { error: { code: 'PERSISTENCE_UNAVAILABLE', message: 'Your request could not be saved.' } },
         503,
       );
@@ -308,13 +351,13 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
             notificationAttempts: 1,
             notificationNextAttemptAt: new Date(currentTime.getTime() + 5 * 60 * 1000).toISOString(),
             notificationLastError: 'transport_unavailable',
-            notificationAlertRequired: true,
+            notificationAlertRequired: false,
           },
         });
       } catch {
         // The lead was created with a pending notification state; keep the safe response.
       }
-      return json(
+      return reply(
         {
           error: {
             code: 'NOTIFICATION_FAILED',
@@ -325,7 +368,7 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
         503,
       );
     }
-    return json({ confirmationId }, 201);
+    return reply({ confirmationId }, 201);
   };
 }
 

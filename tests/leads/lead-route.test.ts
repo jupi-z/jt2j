@@ -20,12 +20,17 @@ const validRequest = {
   website: '',
 };
 
-function request(body: unknown, ip = '198.51.100.10') {
+function request(
+  body: unknown,
+  ip = '198.51.100.10',
+  userAgent = 'JT2J test browser',
+) {
   return new Request('http://localhost/api/leads', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       'x-forwarded-for': ip,
+      'user-agent': userAgent,
     },
     body: JSON.stringify(body),
   });
@@ -135,6 +140,23 @@ describe('POST /api/leads', () => {
     expect(response.status).toBe(429);
   });
 
+  it('keeps fallback rate-limit buckets separate for distinct clients without trusted proxy headers', async () => {
+    const payload = payloadAdapter();
+    const post = createLeadPostHandler({
+      payload,
+      notify: vi.fn().mockResolvedValue(undefined),
+      rateLimit: { max: 1, windowMs: 60_000 },
+    });
+
+    const first = await post(request(validRequest, '198.51.100.10', 'Client A'));
+    const second = await post(
+      request({ ...validRequest, email: 'other@example.test' }, '203.0.113.20', 'Client B'),
+    );
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(201);
+  });
+
   it('bounds and expires the in-memory fallback rate-limit store', async () => {
     let now = 1_000;
     const store = createMemoryRateLimitStore({ maxEntries: 2, now: () => now });
@@ -193,7 +215,7 @@ describe('POST /api/leads', () => {
         data: expect.objectContaining({
           notificationStatus: 'retry_pending',
           notificationAttempts: 1,
-          notificationAlertRequired: true,
+          notificationAlertRequired: false,
         }),
       }),
     );
@@ -271,6 +293,70 @@ describe('POST /api/leads', () => {
           notificationStatus: 'sent',
           notificationAttempts: 2,
           notificationAlertRequired: false,
+        }),
+      }),
+    );
+  });
+
+  it('keeps the operational alert off for a retry failure before the ceiling', async () => {
+    const payload = payloadAdapter({
+      find: vi.fn().mockResolvedValue({
+        docs: [{
+          id: 42,
+          name: 'Aline Kabeya',
+          email: 'aline@example.test',
+          message: validRequest.message,
+          sourcePage: validRequest.sourcePage,
+          locale: 'fr',
+          notificationAttempts: 0,
+          notificationStatus: 'retry_pending',
+        }],
+      }),
+    });
+
+    await processLeadNotificationRetries({
+      payload,
+      notify: vi.fn().mockRejectedValue(new Error('mail sink unavailable')),
+      now: () => new Date('2026-10-28T10:10:00.000Z'),
+    });
+
+    expect(payload.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          notificationAttempts: 1,
+          notificationAlertRequired: false,
+        }),
+      }),
+    );
+  });
+
+  it('raises the operational alert on the terminal retry failure', async () => {
+    const payload = payloadAdapter({
+      find: vi.fn().mockResolvedValue({
+        docs: [{
+          id: 42,
+          name: 'Aline Kabeya',
+          email: 'aline@example.test',
+          message: validRequest.message,
+          sourcePage: validRequest.sourcePage,
+          locale: 'fr',
+          notificationAttempts: 2,
+          notificationStatus: 'retry_pending',
+        }],
+      }),
+    });
+
+    await processLeadNotificationRetries({
+      payload,
+      notify: vi.fn().mockRejectedValue(new Error('mail sink unavailable')),
+      now: () => new Date('2026-10-28T10:10:00.000Z'),
+    });
+
+    expect(payload.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          notificationAttempts: 3,
+          notificationAlertRequired: true,
         }),
       }),
     );
