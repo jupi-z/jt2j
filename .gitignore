@@ -13,4 +13,5 @@ worktrees/
 playwright-report/
 test-results/
 *.tsbuildinfo
+.media/
 
