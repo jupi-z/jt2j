@@ -1,5 +1,6 @@
+export const dynamic = 'force-dynamic';
 import { serviceRoutes } from '@/routing/catalog';
-import { renderRoute } from '@/routing/RouteSkeleton';
+import { renderRoute } from '@/routing/PublicRoute';
 import { routeMetadata } from '@/routing/seo';
 
 export const dynamicParams = false;

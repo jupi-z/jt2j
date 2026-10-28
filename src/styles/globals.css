@@ -554,3 +554,158 @@ main:focus {
     scroll-behavior: auto !important;
   }
 }
+
+/* Public editorial pages: original navy / cream / gold compositions. */
+.public-hero {
+  background: var(--navy);
+  color: var(--cream);
+  padding-block: 64px;
+}
+.public-hero-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  align-items: center;
+  gap: 64px;
+}
+.public-hero .eyebrow {
+  color: var(--gold);
+  margin-bottom: 24px;
+}
+.public-hero h1 {
+  max-width: 850px;
+}
+.public-hero .big-lead {
+  margin-top: 32px;
+  max-width: 650px;
+  color: #d2d9dc;
+}
+.public-hero .abstract-artwork {
+  max-height: 450px;
+}
+.public-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 36px;
+}
+.public-cards article {
+  border-top: 1px solid var(--gold-dark);
+  padding: 28px 0;
+  min-width: 0;
+}
+.public-cards h2 {
+  font-size: clamp(26px, 2.5vw, 36px);
+}
+.public-cards .eyebrow {
+  color: var(--gold-dark);
+  margin-bottom: 18px;
+}
+.public-cards p {
+  margin-block: 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.public-cards .line-link {
+  margin-top: 12px;
+}
+.public-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px 64px;
+  padding-block: 48px;
+}
+.public-section {
+  border-top: 1px solid var(--line);
+  padding-top: 32px;
+  min-width: 0;
+}
+.public-section h2 {
+  font-size: clamp(28px, 3vw, 42px);
+}
+.public-section p {
+  margin-top: 24px;
+  white-space: pre-line;
+}
+.public-section .eyebrow {
+  color: var(--gold-dark);
+  margin-block: 0 18px;
+}
+.public-contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}
+.public-contact p {
+  max-width: 680px;
+}
+.catalogue-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-bottom: 24px;
+}
+.catalogue-controls > div {
+  min-width: 0;
+}
+.catalogue-controls label {
+  display: block;
+  margin-bottom: 12px;
+}
+.catalogue-controls input,
+.catalogue-controls select {
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  min-height: 48px;
+  border: 1px solid var(--muted);
+  background: var(--white);
+  color: var(--ink);
+}
+.public-faq {
+  max-width: 900px;
+}
+.public-faq details {
+  border-bottom: 1px solid var(--line);
+  padding-block: 22px;
+}
+.public-faq summary {
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1.6;
+  padding: 12px 0;
+}
+.public-faq details p {
+  padding-block: 20px;
+  white-space: pre-line;
+}
+.public-values {
+  columns: 2;
+  line-height: 2;
+  padding-left: 20px;
+}
+@media (max-width: 900px) {
+  .public-hero-grid {
+    gap: 28px;
+  }
+  .public-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .public-hero {
+    padding-block: 44px;
+  }
+  .public-hero-grid,
+  .public-cards,
+  .public-sections,
+  .catalogue-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .public-hero .abstract-artwork {
+    max-height: 240px;
+  }
+  .public-values {
+    columns: 1;
+  }
+}

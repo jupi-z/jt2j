@@ -10,6 +10,7 @@ export default defineConfig({
       'tests/unit/**/*.test.ts',
       'tests/content/**/*.test.ts',
       'tests/ui/**/*.spec.tsx',
+      'tests/public/**/*.spec.tsx',
       'tests/payload/**/*.test.ts',
       'src/seed/**/*.test.ts',
     ],

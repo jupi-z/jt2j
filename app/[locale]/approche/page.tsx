@@ -1,4 +1,5 @@
-import { renderRoute } from '@/routing/RouteSkeleton';
+export const dynamic = 'force-dynamic';
+import { renderRoute } from '@/routing/PublicRoute';
 import { routeMetadata } from '@/routing/seo';
 
 export async function generateMetadata({

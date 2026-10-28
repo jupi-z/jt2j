@@ -5,7 +5,7 @@ import { seed } from '../../src/seed/seed';
 import type { User } from '../../src/payload-types';
 
 export async function openTestPayload(
-  name: 'access' | 'localization' | 'seed' | 'rollback' | 'review',
+  name: 'access' | 'localization' | 'seed' | 'rollback' | 'review' | 'public',
 ) {
   const payload = await getPayload({
     key: name,
@@ -20,7 +20,7 @@ export async function openTestPayload(
 }
 
 export async function openTestCMS(
-  name: 'access' | 'localization' | 'seed' | 'review',
+  name: 'access' | 'localization' | 'seed' | 'review' | 'public',
 ) {
   const payload = await openTestPayload(name);
   await seed(payload);

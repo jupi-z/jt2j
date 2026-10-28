@@ -3,13 +3,10 @@ import { getTranslations } from 'next-intl/server';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { routing, localePath } from '@/i18n/config';
-import {
-  divisionRoutes,
-  serviceRoutes,
-  pageRoutes,
-  findRoute,
-} from './catalog';
+import { divisionRoutes, pageRoutes, findRoute } from './catalog';
 import { requireLocale } from './seo';
+import { getPublicContent } from '@/queries/loadPublicContent';
+import { PublicRouteContent } from '@/components/public/PublicRouteContent';
 
 export async function renderRoute(value: string, path: string) {
   const locale = requireLocale(value);
@@ -39,12 +36,7 @@ export async function renderRoute(value: string, path: string) {
     label: t('pages.CONTACT'),
     current: path === '/contact',
   };
-  const children =
-    path === '/poles'
-      ? divisionRoutes
-      : path === '/services'
-        ? serviceRoutes
-        : [];
+  const queries = await getPublicContent();
   return (
     <>
       <Header
@@ -63,19 +55,7 @@ export async function renderRoute(value: string, path: string) {
         cta={contact}
       />
       <main id="main" tabIndex={-1}>
-        <section className="section wrap">
-          <h1>{t(route.message)}</h1>
-          <p>{t('placeholder')}</p>
-          {children.length > 0 && (
-            <ul>
-              {children.map((item) => (
-                <li key={item.path}>
-                  <a href={localePath(locale, item.path)}>{t(item.message)}</a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <PublicRouteContent locale={locale} path={path} queries={queries} />
       </main>
       <Footer
         home={home}
