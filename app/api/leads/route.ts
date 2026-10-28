@@ -1,12 +1,39 @@
 import { getPayload } from 'payload';
-import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
-import { leadRequestSchema, type LeadRequest } from '@/lib/validation/leadSchema';
-import { sendLeadNotification, type LeadNotification } from '@/lib/email/sendLeadNotification';
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from 'node:crypto';
+import {
+  leadRequestSchema,
+  type LeadRequest,
+} from '@/lib/validation/leadSchema';
+import {
+  sendLeadNotification,
+  type LeadNotification,
+} from '@/lib/email/sendLeadNotification';
+import { validateCsrfRequest } from '@/lib/security/csrf';
+import { readJsonWithLimit } from '@/lib/security/inputLimits';
+import { publicMutationRateLimit } from '@/lib/security/rateLimit';
 
 export interface LeadPayloadAdapter {
-  find(args: { collection: string; where: unknown; limit?: number }): Promise<{ docs: Array<Record<string, unknown>> }>;
-  create(args: { collection: string; data: Record<string, unknown>; overrideAccess?: boolean }): Promise<Record<string, unknown>>;
-  update?(args: { collection: string; id: unknown; data: Record<string, unknown>; overrideAccess?: boolean }): Promise<Record<string, unknown>>;
+  find(args: {
+    collection: string;
+    where: unknown;
+    limit?: number;
+  }): Promise<{ docs: Array<Record<string, unknown>> }>;
+  create(args: {
+    collection: string;
+    data: Record<string, unknown>;
+    overrideAccess?: boolean;
+  }): Promise<Record<string, unknown>>;
+  update?(args: {
+    collection: string;
+    id: unknown;
+    data: Record<string, unknown>;
+    overrideAccess?: boolean;
+  }): Promise<Record<string, unknown>>;
   db?: { pool?: LeadRateLimitPool };
 }
 
@@ -21,7 +48,11 @@ export interface LeadRateLimitPool {
 }
 
 export interface LeadRateLimitStore {
-  consume(key: string, options: LeadRateLimitOptions, now: number): Promise<boolean>;
+  consume(
+    key: string,
+    options: LeadRateLimitOptions,
+    now: number,
+  ): Promise<boolean>;
 }
 
 export interface LeadPostDependencies {
@@ -30,6 +61,7 @@ export interface LeadPostDependencies {
   now?: () => Date;
   rateLimit?: LeadRateLimitOptions;
   rateLimitStore?: LeadRateLimitStore;
+  csrf?: { secret: string; required?: boolean };
 }
 
 type MemoryRateLimitEntry = { timestamps: number[]; lastSeen: number };
@@ -42,20 +74,31 @@ export function createMemoryRateLimitStore({
 
   function prune(currentTime: number, windowMs: number) {
     for (const [key, entry] of entries) {
-      entry.timestamps = entry.timestamps.filter((timestamp) => timestamp > currentTime - windowMs);
+      entry.timestamps = entry.timestamps.filter(
+        (timestamp) => timestamp > currentTime - windowMs,
+      );
       if (entry.timestamps.length === 0) entries.delete(key);
     }
     while (entries.size > maxEntries) {
-      const oldest = [...entries.entries()].sort((a, b) => a[1].lastSeen - b[1].lastSeen)[0];
+      const oldest = [...entries.entries()].sort(
+        (a, b) => a[1].lastSeen - b[1].lastSeen,
+      )[0];
       if (!oldest) break;
       entries.delete(oldest[0]);
     }
   }
 
   return {
-    async consume(key: string, options: LeadRateLimitOptions, currentTime = now()) {
+    async consume(
+      key: string,
+      options: LeadRateLimitOptions,
+      currentTime = now(),
+    ) {
       prune(currentTime, options.windowMs);
-      const entry = entries.get(key) ?? { timestamps: [], lastSeen: currentTime };
+      const entry = entries.get(key) ?? {
+        timestamps: [],
+        lastSeen: currentTime,
+      };
       const limited = entry.timestamps.length >= options.max;
       if (!limited) entry.timestamps.push(currentTime);
       entry.lastSeen = currentTime;
@@ -67,7 +110,10 @@ export function createMemoryRateLimitStore({
   } satisfies LeadRateLimitStore & { size: () => number };
 }
 
-export function createPostgresRateLimitStore(pool: LeadRateLimitPool, maxEntries = 10_000): LeadRateLimitStore {
+export function createPostgresRateLimitStore(
+  pool: LeadRateLimitPool,
+  maxEntries = 10_000,
+): LeadRateLimitStore {
   return {
     async consume(key, options, currentTime) {
       const result = await pool.query(
@@ -107,10 +153,16 @@ export function createPostgresRateLimitStore(pool: LeadRateLimitPool, maxEntries
 }
 
 function getDefaultRateLimit(): LeadRateLimitOptions {
-  const configuredMax = Number.parseInt(process.env.LEAD_RATE_LIMIT_MAX || '', 10);
+  const configuredMax = Number.parseInt(
+    process.env.LEAD_RATE_LIMIT_MAX || '',
+    10,
+  );
   return {
-    max: Number.isFinite(configuredMax) && configuredMax > 0 ? configuredMax : 5,
-    windowMs: 15 * 60 * 1000,
+    max:
+      Number.isFinite(configuredMax) && configuredMax > 0
+        ? configuredMax
+        : publicMutationRateLimit.max,
+    windowMs: publicMutationRateLimit.windowMs,
   };
 }
 let defaultPayload: Promise<LeadPayloadAdapter> | undefined;
@@ -149,11 +201,14 @@ function cookieValue(request: Request, name: string) {
 function signedFallbackCookie(value: string) {
   const [token, signature] = value.split('.');
   if (!token || !signature) return undefined;
-  const expected = createHmac('sha256', fallbackRateLimitSecret).update(token).digest('base64url');
+  const expected = createHmac('sha256', fallbackRateLimitSecret)
+    .update(token)
+    .digest('base64url');
   if (
     signature.length !== expected.length ||
     !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
-  ) return undefined;
+  )
+    return undefined;
   return token;
 }
 
@@ -167,7 +222,9 @@ function clientKey(request: Request) {
     // spoofable headers. The first request establishes a signed per-client
     // cookie; only subsequent requests enter a shared rate-limit bucket.
     const token = randomBytes(18).toString('base64url');
-    const signature = createHmac('sha256', fallbackRateLimitSecret).update(token).digest('base64url');
+    const signature = createHmac('sha256', fallbackRateLimitSecret)
+      .update(token)
+      .digest('base64url');
     return {
       key: undefined,
       setCookie: `${fallbackRateLimitCookie}=${token}.${signature}; Max-Age=86400; Path=/; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`,
@@ -180,25 +237,38 @@ function clientKey(request: Request) {
 
 function idempotencyKey(request: LeadRequest) {
   return createHash('sha256')
-    .update(JSON.stringify({
-      email: request.email,
-      message: request.message,
-      locale: request.locale,
-      sourcePage: request.sourcePage,
-      division: request.division,
-      service: request.service,
-    }))
+    .update(
+      JSON.stringify({
+        email: request.email,
+        message: request.message,
+        locale: request.locale,
+        sourcePage: request.sourcePage,
+        division: request.division,
+        service: request.service,
+      }),
+    )
     .digest('hex');
 }
 
 function isUniqueViolation(error: unknown) {
   const candidate = error as { code?: string; message?: string };
-  return candidate.code === '23505' || /duplicate key|unique constraint/i.test(candidate.message || '');
+  return (
+    candidate.code === '23505' ||
+    /duplicate key|unique constraint/i.test(candidate.message || '')
+  );
 }
 
-async function relationId(payload: LeadPayloadAdapter, collection: 'divisions' | 'services', slug?: string) {
+async function relationId(
+  payload: LeadPayloadAdapter,
+  collection: 'divisions' | 'services',
+  slug?: string,
+) {
   if (!slug) return undefined;
-  const result = await payload.find({ collection, where: { slug: { equals: slug } }, limit: 1 });
+  const result = await payload.find({
+    collection,
+    where: { slug: { equals: slug } },
+    limit: 1,
+  });
   return result.docs[0]?.id;
 }
 
@@ -206,7 +276,12 @@ function safeConfirmationId(id: unknown) {
   return `lead_${String(id).replace(/[^a-zA-Z0-9_-]/g, '')}`;
 }
 
-function notificationLead(id: unknown, request: LeadRequest, division?: string, service?: string): LeadNotification {
+function notificationLead(
+  id: unknown,
+  request: LeadRequest,
+  division?: string,
+  service?: string,
+): LeadNotification {
   return {
     id: Number(id),
     name: request.name,
@@ -224,7 +299,8 @@ function notificationLead(id: unknown, request: LeadRequest, division?: string, 
 export function createLeadPostHandler(dependencies: LeadPostDependencies) {
   const now = dependencies.now ?? (() => new Date());
   const rateLimit = dependencies.rateLimit ?? getDefaultRateLimit();
-  const rateLimitStore = dependencies.rateLimitStore ?? createMemoryRateLimitStore();
+  const rateLimitStore =
+    dependencies.rateLimitStore ?? createMemoryRateLimitStore();
 
   return async function post(request: Request): Promise<Response> {
     const currentTime = now();
@@ -237,30 +313,76 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
     let rateLimited = false;
     try {
       if (identity.key) {
-        rateLimited = await rateLimitStore.consume(identity.key, rateLimit, currentTime.getTime());
+        rateLimited = await rateLimitStore.consume(
+          identity.key,
+          rateLimit,
+          currentTime.getTime(),
+        );
       }
     } catch {
-      return reply({ error: { code: 'RATE_LIMIT_UNAVAILABLE', message: 'Contact service is temporarily unavailable.' } }, 503);
+      return reply(
+        {
+          error: {
+            code: 'RATE_LIMIT_UNAVAILABLE',
+            message: 'Contact service is temporarily unavailable.',
+          },
+        },
+        503,
+      );
     }
     if (rateLimited) {
       return reply(
-        { error: { code: 'RATE_LIMITED', message: 'Too many contact requests.' } },
+        {
+          error: {
+            code: 'RATE_LIMITED',
+            message: 'Too many contact requests.',
+          },
+        },
         429,
         { 'retry-after': String(Math.ceil(rateLimit.windowMs / 1000)) },
       );
     }
 
+    if (
+      dependencies.csrf?.required &&
+      !validateCsrfRequest(request, dependencies.csrf.secret)
+    ) {
+      return reply(
+        {
+          error: { code: 'CSRF_INVALID', message: 'Invalid contact request.' },
+        },
+        403,
+      );
+    }
+
     let input: unknown;
     try {
-      input = await request.json();
+      input = await readJsonWithLimit(request);
     } catch {
-      return reply({ error: { code: 'VALIDATION_ERROR', message: 'Invalid contact request.' } }, 400);
+      return reply(
+        {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid contact request.',
+          },
+        },
+        400,
+      );
     }
     const parsed = leadRequestSchema.safeParse(input);
     if (!parsed.success) {
-      return reply({ error: { code: 'VALIDATION_ERROR', message: 'Invalid contact request.' } }, 400);
+      return reply(
+        {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid contact request.',
+          },
+        },
+        400,
+      );
     }
-    if (parsed.data.website.trim() !== '') return reply({ accepted: true }, 202);
+    if (parsed.data.website.trim() !== '')
+      return reply({ accepted: true }, 202);
 
     const requestData = parsed.data;
     let lead: Record<string, unknown>;
@@ -273,14 +395,25 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
           and: [
             { email: { equals: requestData.email } },
             { message: { equals: requestData.message } },
-            { createdAt: { greater_than: new Date(currentTime.getTime() - 24 * 60 * 60 * 1000).toISOString() } },
+            {
+              createdAt: {
+                greater_than: new Date(
+                  currentTime.getTime() - 24 * 60 * 60 * 1000,
+                ).toISOString(),
+              },
+            },
           ],
         },
         limit: 1,
       });
       if (duplicate.docs.length > 0) {
         return reply(
-          { error: { code: 'DUPLICATE_REQUEST', message: 'A similar request was already received.' } },
+          {
+            error: {
+              code: 'DUPLICATE_REQUEST',
+              message: 'A similar request was already received.',
+            },
+          },
           409,
         );
       }
@@ -318,19 +451,36 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
     } catch (error) {
       if (isUniqueViolation(error)) {
         return reply(
-          { error: { code: 'DUPLICATE_REQUEST', message: 'A similar request was already received.' } },
+          {
+            error: {
+              code: 'DUPLICATE_REQUEST',
+              message: 'A similar request was already received.',
+            },
+          },
           409,
         );
       }
       return reply(
-        { error: { code: 'PERSISTENCE_UNAVAILABLE', message: 'Your request could not be saved.' } },
+        {
+          error: {
+            code: 'PERSISTENCE_UNAVAILABLE',
+            message: 'Your request could not be saved.',
+          },
+        },
         503,
       );
     }
     const confirmationId = safeConfirmationId(lead.id);
 
     try {
-      await dependencies.notify(notificationLead(lead.id, requestData, requestData.division, requestData.service));
+      await dependencies.notify(
+        notificationLead(
+          lead.id,
+          requestData,
+          requestData.division,
+          requestData.service,
+        ),
+      );
       await dependencies.payload.update?.({
         collection: 'leads',
         id: lead.id,
@@ -351,7 +501,9 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
           data: {
             notificationStatus: 'retry_pending',
             notificationAttempts: 1,
-            notificationNextAttemptAt: new Date(currentTime.getTime() + 5 * 60 * 1000).toISOString(),
+            notificationNextAttemptAt: new Date(
+              currentTime.getTime() + 5 * 60 * 1000,
+            ).toISOString(),
             notificationLastError: 'transport_unavailable',
             notificationAlertRequired: false,
           },
@@ -363,7 +515,8 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
         {
           error: {
             code: 'NOTIFICATION_FAILED',
-            message: 'Your request was saved, but notification is temporarily unavailable.',
+            message:
+              'Your request was saved, but notification is temporarily unavailable.',
             confirmationId,
           },
         },
@@ -381,7 +534,16 @@ export async function POST(request: Request) {
     const rateLimitStore = postgresPool
       ? createPostgresRateLimitStore(postgresPool)
       : defaultMemoryRateLimitStore;
-    defaultPost = createLeadPostHandler({ payload, notify: sendLeadNotification, rateLimitStore });
+    const csrfSecret = process.env.CSRF_SECRET || process.env.PAYLOAD_SECRET;
+    defaultPost = createLeadPostHandler({
+      payload,
+      notify: sendLeadNotification,
+      rateLimitStore,
+      csrf:
+        csrfSecret && csrfSecret.length >= 32
+          ? { secret: csrfSecret, required: true }
+          : undefined,
+    });
   }
   return defaultPost(request);
 }

@@ -15,6 +15,7 @@ import { LegalDocuments } from '../collections/LegalDocuments';
 import { SiteSettings } from '../globals/SiteSettings';
 import { Navigation } from '../globals/Navigation';
 import { locales } from '../content/types';
+import { assertProductionEnvironment } from '../lib/security/environment';
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -23,6 +24,7 @@ const root = path.resolve(
 export function createPayloadConfig(
   env: Record<string, string | undefined> = process.env,
 ) {
+  assertProductionEnvironment(env);
   if (
     !env.DATABASE_URL ||
     !env.PAYLOAD_SECRET ||

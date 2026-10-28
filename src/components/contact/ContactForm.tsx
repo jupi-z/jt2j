@@ -13,11 +13,14 @@ const copy = {
     phone: 'Téléphone',
     company: 'Entreprise',
     message: 'Message',
-    consent: "J'accepte que JT2J utilise ces informations pour répondre à ma demande.",
+    consent:
+      "J'accepte que JT2J utilise ces informations pour répondre à ma demande.",
     submit: 'Envoyer la demande',
     sending: 'Envoi en cours…',
-    error: "Votre demande n'a pas pu être envoyée. Veuillez réessayer plus tard.",
-    notificationError: 'Votre demande a été enregistrée. Notre équipe doit encore être alertée.',
+    error:
+      "Votre demande n'a pas pu être envoyée. Veuillez réessayer plus tard.",
+    notificationError:
+      'Votre demande a été enregistrée. Notre équipe doit encore être alertée.',
   },
   en: {
     name: 'Name',
@@ -29,13 +32,16 @@ const copy = {
     submit: 'Send request',
     sending: 'Sending…',
     error: 'Your request could not be sent. Please try again later.',
-    notificationError: 'Your request was saved. Our team still needs to be alerted.',
+    notificationError:
+      'Your request was saved. Our team still needs to be alerted.',
   },
 } as const;
 
 export function ContactForm({ locale, sourcePage }: Props) {
   const labels = copy[locale];
-  const [status, setStatus] = useState<'idle' | 'sending' | 'error' | 'notification-error'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'sending' | 'error' | 'notification-error'
+  >('idle');
   const [confirmationId, setConfirmationId] = useState<string>();
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -43,9 +49,16 @@ export function ContactForm({ locale, sourcePage }: Props) {
     setStatus('sending');
     try {
       const form = new FormData(event.currentTarget);
+      const csrfResponse = await fetch('/api/csrf', { cache: 'no-store' });
+      const csrfBody = csrfResponse.ok
+        ? ((await csrfResponse.json()) as { token?: string })
+        : {};
       const response = await fetch('/api/leads', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          ...(csrfBody.token ? { 'x-csrf-token': csrfBody.token } : {}),
+        },
         body: JSON.stringify({
           name: form.get('name'),
           email: form.get('email'),
@@ -80,7 +93,8 @@ export function ContactForm({ locale, sourcePage }: Props) {
     }
   }
 
-  if (confirmationId && status === 'idle') return <LeadConfirmation confirmationId={confirmationId} locale={locale} />;
+  if (confirmationId && status === 'idle')
+    return <LeadConfirmation confirmationId={confirmationId} locale={locale} />;
   return (
     <form className="public-contact-form" onSubmit={submit} noValidate>
       <div className="public-contact-grid">
