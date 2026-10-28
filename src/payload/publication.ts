@@ -57,7 +57,22 @@ const schemas = {
   divisions: divisionSeedSchema,
   services: serviceSeedSchema,
   faqs: faqSeedSchema,
-  'site-settings': siteSettingsSeedSchema,
+  'site-settings': siteSettingsSeedSchema.extend({
+    defaultSEO: z
+      .object({
+        title: localizedTextSchema.optional(),
+        description: localizedTextSchema.optional(),
+      })
+      .optional(),
+    socialLinks: z
+      .array(
+        z.object({
+          label: localizedTextSchema,
+          url: z.url({ protocol: /^https?$/ }),
+        }),
+      )
+      .optional(),
+  }),
   'legal-documents': pageSeedSchema.omit({ key: true, values: true }).extend({
     kind: z.enum(['legal-notice', 'privacy-policy', 'cookie-policy']),
     effectiveDate: z.string().min(1),
@@ -298,7 +313,7 @@ async function enforce(
         );
     }
   }
-  if (kind === 'site-settings') {
+  if (kind === 'site-settings' && publishing) {
     for (const [feature, enabled] of Object.entries(object(merged.features))) {
       if (!enabled) continue;
       const category =
@@ -308,14 +323,13 @@ async function enforce(
             ? 'legal'
             : feature;
       if (
-        !publishing ||
         !claims.success ||
         !claims.data.some(
           (c) => c.category === category && c.status === 'approved',
         )
       )
         throw new APIError(
-          `Feature ${feature} requires published settings and evidenced ${category} approval`,
+          `Feature ${feature} requires evidenced ${category} approval before publication`,
           400,
         );
     }

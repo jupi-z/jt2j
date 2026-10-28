@@ -40,7 +40,7 @@ process.on('disconnect', () => {
 try {
   await pg.initialise();
   await pg.start();
-  for (const name of ['access', 'localization', 'seed', 'rollback'])
+  for (const name of ['access', 'localization', 'seed', 'rollback', 'review'])
     await pg.createDatabase(`jt2j_test_${name}`);
   process.send?.({
     url: `postgresql://postgres:disposable-test-only@127.0.0.1:${port}`,

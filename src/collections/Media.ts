@@ -6,6 +6,7 @@ import {
   stripPrivateContent,
 } from '../access/publishedOnly';
 import { publicationFields, text } from './fields';
+import { immutableMedia } from '../payload/immutableMedia';
 import {
   collectionPublication,
   captureCollectionApproval,
@@ -13,8 +14,13 @@ import {
 
 export const Media: CollectionConfig = {
   slug: 'media',
-  access: contentAccess,
-  admin: { useAsTitle: 'alt' },
+  access: { ...contentAccess, delete: () => false },
+  disableDuplicate: true,
+  admin: {
+    useAsTitle: 'alt',
+    description:
+      'Files are immutable. Upload a new media record to replace an asset, then update its content relationship. Metadata remains editable.',
+  },
   versions: { drafts: true, maxPerDoc: 50 },
   // Deliberately outside public/: downloads must pass Payload's read access.
   upload: {
@@ -24,7 +30,11 @@ export const Media: CollectionConfig = {
   },
   hooks: {
     afterRead: [stripPrivateContent],
-    beforeOperation: [captureCollectionApproval, protectDraftQueries],
+    beforeOperation: [
+      immutableMedia,
+      captureCollectionApproval,
+      protectDraftQueries,
+    ],
     beforeChange: [collectionPublication('media')],
   },
   fields: [

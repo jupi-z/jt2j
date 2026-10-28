@@ -139,8 +139,21 @@ The S3 plugin adds the same schema fields even when disabled. JPEG, PNG, WebP an
 PDF uploads are limited to 10 MiB; publication requires bilingual alt text and
 approved rights/evidence. No live S3 integration is asserted by the tests.
 
+Media binaries are immutable for every role, including trusted Local API callers.
+Upload a new media record to replace a file (including draft files), then switch
+the referencing content's media relationship through its normal draft/approval
+workflow. Server-generated UUID filenames prevent caller-selected overwrite keys.
+In-place replacement, deletion, image reprocessing, duplication and direct media
+version restoration are rejected before Payload can mutate storage. Editorial
+metadata can still be updated; historical binaries remain available. Automated
+file garbage collection is intentionally unavailable.
+
+Optional social-link labels and default SEO fields must be bilingual when used.
+Private settings drafts may retain enabled feature flags while copy is reviewed;
+publication still requires every enabled feature's evidenced category approval.
+
 The tests start PostgreSQL 17 in a separate temporary process on loopback, migrate
-four isolated databases, and stop/remove the disposable cluster afterward. The
+five isolated databases, and stop/remove the disposable cluster afterward. The
 Windows binary postinstall permission is explicit in `pnpm-workspace.yaml`.
 PostgreSQL 18's embedded Windows binary failed initialization on this machine.
 Payload is not mounted in Next yet: admin/REST routes belong to Task 8; public

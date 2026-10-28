@@ -143,3 +143,88 @@ Primary references consulted: Payload's official access-control, Local API,
 drafts, PostgreSQL and storage-adapter documentation, plus the installed 3.92.1
 operation implementations for request mutation, first-user registration and
 global version restoration.
+
+## Fix round 1 — reviewer regressions (2026-10-28)
+
+Status: all three findings fixed. No subagents or reviewers were spawned.
+
+### P1 — media file preservation
+
+- Verified in the installed Payload 3.92.1 operations that file generation,
+  deletion and upload can precede collection beforeChange. A later publication
+  failure cannot roll back filesystem or object-store mutations.
+- Added `src/payload/immutableMedia.ts` as the first Media beforeOperation hook,
+  before file generation, deletion and storage adapter hooks. Each media identity
+  now owns one immutable binary. File replacement, reprocessing/cropping, upload
+  destination/derived-file tuple mutation, explicit overwrite, duplication,
+  deletion and direct version restoration are rejected before storage mutation.
+  The guard also applies to trusted Local API calls with overrideAccess enabled.
+- New media records require a fresh server upload and receive a server-generated
+  UUID filename. Client-selected object keys and external file imports are not
+  accepted. Replacements, including draft replacements, use a new draft media
+  record; referencing content must switch the relationship through the normal
+  approval workflow. Existing publication/history bytes remain available.
+- Media delete access is disabled. Editorial metadata remains editable through
+  metadata-only writes. README and collection guidance describe the workflow.
+- Regression tests inspect actual files and buffers on disk: a rejected editor
+  replacement leaves published bytes present; publisher/trusted deletion is
+  rejected; same-filename draft overwrite is rejected; a draft replacement attempt
+  preserves the old draft bytes; a fresh replacement upload has a different ID/key,
+  correct independent bytes and no public visibility. Reprocessing and prefix
+  mutation are also rejected without changing stored bytes.
+
+### P2 — complete localized settings validation
+
+- Extended the CMS publication schema beyond the canonical seed schema to cover
+  `socialLinks[].label` and optional `defaultSEO.title/description`. Each populated
+  localized field must contain nonempty French and English text. Unused optional
+  SEO fields remain optional; social URLs must use HTTP(S).
+- Three regression cases separately verify missing English social labels, SEO
+  titles and SEO descriptions. Each checks the private diagnostic path and failed
+  publication, then supplies the English translation and successfully publishes.
+
+### P2 — enabled features in private drafts
+
+- Feature category/evidence checks now execute only when publishing settings.
+  Private drafts may retain enabled flags as copy changes invalidate approval.
+  Publication still requires approved claims, bilingual copy and the appropriate
+  evidenced category for every enabled feature.
+- Regression publishes approved settings with contactForm enabled, saves an
+  editor's private copy change, verifies that its flag remains true while status
+  becomes draft and approval false, confirms the public revision is unchanged,
+  and rejects republishing without fresh approval. The earlier feature test now
+  correctly targets publication rather than rejecting private draft authoring.
+
+### Executed evidence
+
+- RED: `pnpm test tests/payload/review-round-1.test.ts` — **9 failed**, exit 1.
+  Observed published-file ENOENT after a rejected editor update, accepted deletion
+  and overwrite/draft replacement operations, accepted French-only publication,
+  and the enabled-feature error on an ordinary private draft. Log:
+  `test-results/task5-round1-red.log`.
+- An intermediate focused run passed 26/28; two cases exposed test fixture
+  interference because only French SEO values had been reset. Reset both locales
+  between translation cases; no production validation was weakened.
+- Final `pnpm test:payload` — **28 passed across four suites**, exit 0, on five
+  isolated disposable PostgreSQL 17 databases, including seed transaction rollback
+  and migration down/up. Log: `test-results/task5-round1-focused.log`.
+- Final `pnpm test` — **73 passed across seven suites**, exit 0.
+  Log: `test-results/task5-round1-full.log`.
+- Final `pnpm lint` — passed with zero warnings. `pnpm typecheck` — passed.
+  Logs: `test-results/task5-round1-lint.log` and
+  `test-results/task5-round1-typecheck.log`.
+- Final `pnpm build` — passed, including TypeScript and existing public route
+  prerendering. Log: `test-results/task5-round1-build.log`.
+- Targeted Prettier check and `git diff --check` — passed. No schema changes or
+  database migration were required; canonical seed content remains unmodified.
+
+### Remaining concerns
+
+- Binary replacement requires a new media record; in-place file mutation and
+  automatic deletion/garbage collection are intentionally unavailable. Media
+  version history can be read; editorial metadata from history must be reapplied
+  through a normal validated write. Clients should submit editable metadata only,
+  without generated file fields or reprocessing parameters.
+- Actual storage-byte regression tests cover the local filesystem. Live S3 and
+  mounted CMS HTTP download behavior remain unverified, as in the original Task 5
+  report. Email/admin route setup and deployment remain outside this fix round.

@@ -285,14 +285,26 @@ describe('Payload public boundary and roles', () => {
     expect(publicMedia).not.toHaveProperty('claims');
   });
 
-  it('blocks legal/contact features without an evidenced approval for that category', async () => {
+  it('blocks publication of legal/contact features without an evidenced approval for that category', async () => {
     await expect(
       cms.payload.updateGlobal({
         slug: 'site-settings',
-        draft: true,
         user: cms.users.publisher,
         overrideAccess: false,
-        data: { features: { contactForm: true } },
+        data: {
+          _status: 'published',
+          publicationApproved: true,
+          features: { contactForm: true },
+          claims: [
+            {
+              category: 'contact',
+              source: 'Test contact data',
+              status: 'approved',
+              approvedBy: 'Test publisher',
+              evidence: 'Test contact evidence',
+            },
+          ],
+        },
       }),
     ).rejects.toThrow(/Feature contactForm/);
   });
