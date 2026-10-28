@@ -1,0 +1,43 @@
+{
+  "pages": {
+    "HOME": "Accueil",
+    "COMPANY": "Entreprise",
+    "EXPERTISE": "Pôles",
+    "SERVICES": "Services",
+    "APPROACH": "Approche",
+    "FAQ": "Questions fréquentes",
+    "CONTACT": "Contact"
+  },
+  "divisions": {
+    "SEC": "Sécurité et biométrie",
+    "LOG": "Logistique et suivi",
+    "HYG": "Hygiène et lutte antiparasitaire",
+    "BIZ": "Business et marketing",
+    "TRV": "Voyages et escapades"
+  },
+  "services": {
+    "pest-control": "Lutte antiparasitaire",
+    "cleaning": "Nettoyage",
+    "travel-tourism": "Voyage et tourisme",
+    "disinfection-sanitation": "Désinfection et assainissement",
+    "facility-management": "Gestion des installations",
+    "transport-logistics": "Transport et logistique",
+    "trading-supply": "Négoce et approvisionnement"
+  },
+  "description": "{title} — JT2J. Cette page est en cours de préparation.",
+  "placeholder": "Cette page est en cours de préparation.",
+  "navigation": "Navigation principale",
+  "languageLabel": "Choisir la langue",
+  "languages": {
+    "fr": "Français",
+    "en": "Anglais"
+  },
+  "openMenu": "Ouvrir le menu",
+  "closeMenu": "Fermer le menu",
+  "skip": "Aller au contenu",
+  "browseDivisions": "Explorer les pôles",
+  "notFound": {
+    "title": "Page introuvable",
+    "home": "Retour à l’accueil"
+  }
+}
