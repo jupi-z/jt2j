@@ -161,15 +161,15 @@ function clientKey(request: Request) {
   if (process.env.TRUST_PROXY !== 'true') {
     const existing = cookieValue(request, fallbackRateLimitCookie);
     const signed = existing ? signedFallbackCookie(existing) : undefined;
-    const token = signed || randomBytes(18).toString('base64url');
-    const userAgent = request.headers.get('user-agent') || 'unknown-user-agent';
-    const language = request.headers.get('accept-language') || 'unknown-language';
-    const key = signed
-      ? `fallback-cookie:${signed}`
-      : `fallback-fingerprint:${createHash('sha256').update(`${userAgent}|${language}`).digest('hex')}`;
+    if (signed) return { key: `fallback-cookie:${signed}` };
+
+    // Without a trusted proxy identity, never group anonymous requests by
+    // spoofable headers. The first request establishes a signed per-client
+    // cookie; only subsequent requests enter a shared rate-limit bucket.
+    const token = randomBytes(18).toString('base64url');
     const signature = createHmac('sha256', fallbackRateLimitSecret).update(token).digest('base64url');
     return {
-      key,
+      key: undefined,
       setCookie: `${fallbackRateLimitCookie}=${token}.${signature}; Max-Age=86400; Path=/; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`,
     };
   }
@@ -234,9 +234,11 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
         ...headers,
         ...(identity.setCookie ? { 'set-cookie': identity.setCookie } : {}),
       });
-    let rateLimited: boolean;
+    let rateLimited = false;
     try {
-      rateLimited = await rateLimitStore.consume(identity.key, rateLimit, currentTime.getTime());
+      if (identity.key) {
+        rateLimited = await rateLimitStore.consume(identity.key, rateLimit, currentTime.getTime());
+      }
     } catch {
       return reply({ error: { code: 'RATE_LIMIT_UNAVAILABLE', message: 'Contact service is temporarily unavailable.' } }, 503);
     }

@@ -24,6 +24,7 @@ function request(
   body: unknown,
   ip = '198.51.100.10',
   userAgent = 'JT2J test browser',
+  cookie?: string,
 ) {
   return new Request('http://localhost/api/leads', {
     method: 'POST',
@@ -31,6 +32,7 @@ function request(
       'content-type': 'application/json',
       'x-forwarded-for': ip,
       'user-agent': userAgent,
+      ...(cookie ? { cookie } : {}),
     },
     body: JSON.stringify(body),
   });
@@ -87,6 +89,7 @@ describe('POST /api/leads', () => {
     const body = await response.json();
 
     expect(response.status).toBe(400);
+    expect(response.headers.get('set-cookie')).toMatch(/^jt2j_lead_rl=/);
     expect(body).toEqual({
       error: { code: 'VALIDATION_ERROR', message: 'Invalid contact request.' },
     });
@@ -103,6 +106,7 @@ describe('POST /api/leads', () => {
     const body = await response.json();
 
     expect(response.status).toBe(202);
+    expect(response.headers.get('set-cookie')).toMatch(/^jt2j_lead_rl=/);
     expect(body).toEqual({ accepted: true });
     expect(payload.create).not.toHaveBeenCalled();
     expect(notify).not.toHaveBeenCalled();
@@ -116,8 +120,11 @@ describe('POST /api/leads', () => {
       rateLimit: { max: 1, windowMs: 60_000 },
     });
 
-    expect((await post(request(validRequest))).status).toBe(201);
-    const response = await post(request({ ...validRequest, email: 'other@example.test' }));
+    const first = await post(request(validRequest));
+    const cookie = first.headers.get('set-cookie')?.split(';')[0];
+    expect(first.status).toBe(201);
+    expect((await post(request({ ...validRequest, email: 'other@example.test' }, '198.51.100.10', 'JT2J test browser', cookie!))).status).toBe(201);
+    const response = await post(request({ ...validRequest, email: 'third@example.test' }, '198.51.100.10', 'JT2J test browser', cookie!));
     const body = await response.json();
 
     expect(response.status).toBe(429);
@@ -134,8 +141,16 @@ describe('POST /api/leads', () => {
       rateLimit: { max: 1, windowMs: 60_000 },
     });
 
-    expect((await post(request(validRequest, '198.51.100.10'))).status).toBe(201);
-    const response = await post(request({ ...validRequest, email: 'rotated@example.test' }, '203.0.113.20'));
+    const first = await post(request(validRequest, '198.51.100.10'));
+    const cookie = first.headers.get('set-cookie')?.split(';')[0];
+    expect(first.status).toBe(201);
+    expect(cookie).toMatch(/^jt2j_lead_rl=/);
+    expect((await post(
+      request({ ...validRequest, email: 'rotated@example.test' }, '203.0.113.20', 'Different browser', cookie!),
+    )).status).toBe(201);
+    const response = await post(
+      request({ ...validRequest, email: 'rotated-again@example.test' }, '203.0.113.20', 'Different browser', cookie!),
+    );
 
     expect(response.status).toBe(429);
   });
@@ -155,6 +170,36 @@ describe('POST /api/leads', () => {
 
     expect(first.status).toBe(201);
     expect(second.status).toBe(201);
+  });
+
+  it('allows no-cookie fallback clients independently, then enforces only their signed cookie', async () => {
+    const payload = payloadAdapter();
+    const post = createLeadPostHandler({
+      payload,
+      notify: vi.fn().mockResolvedValue(undefined),
+      rateLimit: { max: 1, windowMs: 60_000 },
+    });
+
+    const first = await post(request(validRequest, '198.51.100.10', 'Same browser'));
+    const second = await post(
+      request({ ...validRequest, email: 'other@example.test' }, '203.0.113.20', 'Same browser'),
+    );
+    const firstCookie = first.headers.get('set-cookie')?.split(';')[0];
+    const secondCookie = second.headers.get('set-cookie')?.split(';')[0];
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(201);
+    expect(firstCookie).toMatch(/^jt2j_lead_rl=/);
+    expect(secondCookie).toMatch(/^jt2j_lead_rl=/);
+    expect(firstCookie).not.toBe(secondCookie);
+
+    expect((await post(
+      request({ ...validRequest, email: 'third@example.test' }, '192.0.2.30', 'Same browser', firstCookie!),
+    )).status).toBe(201);
+    const followUp = await post(
+      request({ ...validRequest, email: 'fourth@example.test' }, '192.0.2.30', 'Same browser', firstCookie!),
+    );
+    expect(followUp.status).toBe(429);
   });
 
   it('bounds and expires the in-memory fallback rate-limit store', async () => {
