@@ -8,6 +8,7 @@ allowBuilds:
 overrides:
   dompurify: '>=3.4.17'
   esbuild: '>=0.25.0'
+  graphql-scalars: '>=2.0.1'
 minimumReleaseAgeExclude:
   - '@payloadcms/db-postgres@3.92.1'
   - '@payloadcms/drizzle@3.92.1'

@@ -23,6 +23,7 @@ La source canonique de l'interface publique est `docs/reference/JT2J_Prestige_Pr
 - `pnpm typecheck` : PASS.
 - `pnpm lint` : PASS avec `--max-warnings 0`.
 - `pnpm build` : PASS, génération Next.js terminée et routes publiques produites.
+- `pnpm audit --audit-level=high` : PASS au seuil high après l'override `graphql-scalars >=2.0.1` ; un avis low transitive reste signalé.
 - Migration Payload de contexte lead : appliquée puis rollback/rejouée par la suite de tests Payload.
 
 ## Vérification visuelle manuelle
@@ -35,6 +36,10 @@ Routes observées dans le navigateur local :
 - `/fr/services` : hero catalogue, recherche, filtres et sept services visibles.
 
 Le badge Next.js visible sur les captures appartient uniquement au mode développement local et ne fait pas partie du rendu de production.
+
+## CI GitHub
+
+Le premier run du commit `bc9a65c` a validé PostgreSQL, l'installation verrouillée, les migrations, les 183 tests, le typecheck et le lint. Il s'est arrêté sur l'audit high à cause de `graphql-scalars@1.22.2` apporté par Payload. L'override workspace vers `>=2.0.1` est maintenant en place ; un nouveau run doit confirmer la correction distante.
 
 ## Limites restantes
 
