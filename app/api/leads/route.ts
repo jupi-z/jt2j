@@ -18,6 +18,12 @@ import { readJsonWithLimit } from '@/lib/security/inputLimits';
 import { publicMutationRateLimit } from '@/lib/security/rateLimit';
 import { appLogger, type StructuredLogger } from '@/lib/observability/logger';
 
+export function isContactSmokeRequest(request: Request) {
+  const expected = process.env.CONTACT_SMOKE_TOKEN;
+  const provided = request.headers.get('x-jt2j-smoke-token');
+  return process.env.CONTACT_SMOKE_MODE === 'enabled' && Boolean(expected && provided && expected === provided);
+}
+
 export interface LeadPayloadAdapter {
   find(args: {
     collection: string;
@@ -552,6 +558,7 @@ export function createLeadPostHandler(dependencies: LeadPostDependencies) {
 }
 
 export async function POST(request: Request) {
+  if (isContactSmokeRequest(request)) return json({ accepted: true, testMode: true }, 202);
   if (!defaultPost) {
     const payload = await getDefaultPayload();
     const postgresPool = payload.db?.pool;

@@ -1,0 +1,62 @@
+name: JT2J CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, feat/jt2j-production]
+  workflow_call:
+    inputs:
+      revision:
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: jt2j_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres -d jt2j_test"
+          --health-interval=5s --health-timeout=5s --health-retries=12
+    env:
+      DATABASE_URL: postgresql://postgres:${{ secrets.CI_POSTGRES_PASSWORD }}@localhost:5432/jt2j_test
+      PAYLOAD_SECRET: ${{ secrets.CI_PAYLOAD_SECRET }}
+      CSRF_SECRET: ${{ secrets.CI_CSRF_SECRET }}
+      SITE_URL: http://localhost:3000
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm audit --audit-level=high
+      - run: pnpm build
+      - name: Upload build metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jt2j-ci-metadata-${{ github.sha }}
+          path: |
+            .next/BUILD_ID
+            pnpm-lock.yaml
+          if-no-files-found: warn
+          retention-days: 14

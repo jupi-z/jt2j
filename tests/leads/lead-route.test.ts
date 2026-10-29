@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createLeadPostHandler,
   createMemoryRateLimitStore,
+  isContactSmokeRequest,
   type LeadPayloadAdapter,
 } from '../../app/api/leads/route';
 import { processLeadNotificationRetries } from '../../src/lib/email/retryLeadNotifications';
@@ -57,6 +58,27 @@ describe('POST /api/leads', () => {
   });
   afterEach(() => {
     delete process.env.TRUST_PROXY;
+    delete process.env.CONTACT_SMOKE_TOKEN;
+    delete process.env.CONTACT_SMOKE_MODE;
+  });
+
+  it('recognizes contact smoke mode only with the explicit staging token', () => {
+    process.env.CONTACT_SMOKE_TOKEN = 'staging-only-token';
+    process.env.CONTACT_SMOKE_MODE = 'enabled';
+    expect(
+      isContactSmokeRequest(
+        new Request('http://localhost/api/leads', {
+          headers: { 'x-jt2j-smoke-token': 'staging-only-token' },
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isContactSmokeRequest(
+        new Request('http://localhost/api/leads', {
+          headers: { 'x-jt2j-smoke-token': 'wrong-token' },
+        }),
+      ),
+    ).toBe(false);
   });
 
   it('does not accept a first anonymous mutation before its signed rate-limit cookie is returned', async () => {

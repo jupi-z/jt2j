@@ -15,6 +15,7 @@ export default defineConfig({
       'tests/leads/**/*.test.ts',
       'tests/admin/**/*.spec.ts',
       'tests/security/**/*.test.ts',
+      'tests/release/**/*.test.ts',
       'src/seed/**/*.test.ts',
     ],
     environment: 'node',

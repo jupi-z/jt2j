@@ -1,0 +1,109 @@
+name: JT2J production deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Approved Git revision to deploy
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jt2j-production
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    uses: ./.github/workflows/ci.yml
+    with:
+      revision: ${{ inputs.revision }}
+    secrets: inherit
+
+  preflight:
+    needs: quality
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Verify provider backup manifest (dry-run only)
+        env:
+          BACKUP_MANIFEST_JSON: ${{ secrets.PRODUCTION_BACKUP_MANIFEST_JSON }}
+        run: |
+          test -n "$BACKUP_MANIFEST_JSON"
+          printf '%s' "$BACKUP_MANIFEST_JSON" > "$RUNNER_TEMP/jtj2-backup.json"
+          BACKUP_MANIFEST="$RUNNER_TEMP/jtj2-backup.json" pnpm backup:check
+      - name: Verify rollback plan (dry-run only)
+        env:
+          ROLLBACK_PLAN_JSON: ${{ secrets.PRODUCTION_ROLLBACK_PLAN_JSON }}
+        run: |
+          test -n "$ROLLBACK_PLAN_JSON"
+          printf '%s' "$ROLLBACK_PLAN_JSON" > "$RUNNER_TEMP/jtj2-rollback.json"
+          ROLLBACK_PLAN="$RUNNER_TEMP/jtj2-rollback.json" pnpm rollback:check
+      - name: Verify approved staging smoke evidence
+        env:
+          STAGING_EVIDENCE: ${{ secrets.PRODUCTION_STAGING_EVIDENCE }}
+        run: test -n "$STAGING_EVIDENCE"
+
+  deploy:
+    needs: preflight
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+      - name: Trust deployment host
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Run controlled production migration and restart
+        env:
+          HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+          USER: ${{ secrets.PRODUCTION_SSH_USER }}
+          APP_DIR: ${{ secrets.PRODUCTION_APP_DIR }}
+          REVISION: ${{ inputs.revision }}
+        run: |
+          app_dir_b64="$(printf '%s' "$APP_DIR" | base64 -w0)"
+          revision_b64="$(printf '%s' "$REVISION" | base64 -w0)"
+          ssh "$USER@$HOST" "bash -s -- '$app_dir_b64' '$revision_b64'" <<'REMOTE'
+          set -eu
+          APP_DIR="$(printf '%s' "$1" | base64 -d)"
+          REVISION="$(printf '%s' "$2" | base64 -d)"
+          cd -- "$APP_DIR"
+          git fetch --tags origin -- "$REVISION"
+          git checkout --detach -- "$REVISION"
+          pnpm install --frozen-lockfile
+          pnpm cms:migrate
+          pnpm build
+          systemctl restart jt2j-production
+          REMOTE
+      - name: Smoke production public surface
+        env:
+          SMOKE_BASE_URL: ${{ secrets.PRODUCTION_BASE_URL }}
+        run: pnpm smoke:public

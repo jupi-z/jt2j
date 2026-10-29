@@ -4,6 +4,7 @@ import './src/env';
 import { securityHeaders } from './src/lib/security/headers';
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   serverExternalPackages: [
     'payload',
     '@payloadcms/db-postgres',
