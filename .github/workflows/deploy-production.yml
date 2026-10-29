@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: jt2j-production
@@ -38,20 +39,50 @@ jobs:
           node-version: 22.12.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Verify provider backup manifest (dry-run only)
+      - name: Materialize revision-bound backup and rollback artifacts
         env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_RUN_ID: ${{ secrets.PRODUCTION_ARTIFACT_RUN_ID }}
+          REVISION: ${{ inputs.revision }}
           BACKUP_MANIFEST_JSON: ${{ secrets.PRODUCTION_BACKUP_MANIFEST_JSON }}
-        run: |
-          test -n "$BACKUP_MANIFEST_JSON"
-          printf '%s' "$BACKUP_MANIFEST_JSON" > "$RUNNER_TEMP/jtj2-backup.json"
-          BACKUP_MANIFEST="$RUNNER_TEMP/jtj2-backup.json" BACKUP_EXPECTED_REVISION="${{ inputs.revision }}" pnpm backup:check
-      - name: Verify rollback plan (dry-run only)
-        env:
           ROLLBACK_PLAN_JSON: ${{ secrets.PRODUCTION_ROLLBACK_PLAN_JSON }}
         run: |
-          test -n "$ROLLBACK_PLAN_JSON"
-          printf '%s' "$ROLLBACK_PLAN_JSON" > "$RUNNER_TEMP/jtj2-rollback.json"
-          ROLLBACK_PLAN="$RUNNER_TEMP/jtj2-rollback.json" ROLLBACK_EXPECTED_TARGET_REVISION="${{ inputs.revision }}" pnpm rollback:check
+          set -euo pipefail
+          test -n "$ARTIFACT_RUN_ID" || { echo '::error::PRODUCTION_ARTIFACT_RUN_ID is required; no backup/rollback artifact source was provided.'; exit 1; }
+          case "$ARTIFACT_RUN_ID" in
+            (*[!0-9]*) echo '::error::PRODUCTION_ARTIFACT_RUN_ID must be a numeric GitHub Actions run id.'; exit 1;;
+          esac
+          test -n "$BACKUP_MANIFEST_JSON" || { echo '::error::PRODUCTION_BACKUP_MANIFEST_JSON is required.'; exit 1; }
+          test -n "$ROLLBACK_PLAN_JSON" || { echo '::error::PRODUCTION_ROLLBACK_PLAN_JSON is required.'; exit 1; }
+
+          artifact_root="$RUNNER_TEMP/jt2j-artifacts"
+          database_dir="$artifact_root/database"
+          media_dir="$artifact_root/media"
+          rollback_dir="$artifact_root/rollback"
+          mkdir -p "$database_dir" "$media_dir" "$rollback_dir"
+          gh run download "$ARTIFACT_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "jt2j-production-backup-database-${REVISION}" --dir "$database_dir"
+          gh run download "$ARTIFACT_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "jt2j-production-backup-media-${REVISION}" --dir "$media_dir"
+          gh run download "$ARTIFACT_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "jt2j-production-rollback-${REVISION}" --dir "$rollback_dir"
+
+          database_path="$database_dir/database.dump"
+          media_path="$media_dir/media.tar"
+          rollback_path="$rollback_dir/previous-release.tar"
+          for artifact_path in "$database_path" "$media_path" "$rollback_path"; do
+            test -s "$artifact_path" || { echo "::error::Expected non-empty downloaded artifact is missing: $artifact_path"; exit 1; }
+          done
+
+          printf '%s' "$BACKUP_MANIFEST_JSON" | jq --arg database_path "$database_path" --arg media_path "$media_path" '.database.path=$database_path | .media.path=$media_path' > "$RUNNER_TEMP/jtj2-backup.json"
+          printf '%s' "$ROLLBACK_PLAN_JSON" | jq --arg rollback_path "$rollback_path" '.artifact.path=$rollback_path' > "$RUNNER_TEMP/jtj2-rollback.json"
+      - name: Verify provider backup manifest (dry-run only)
+        env:
+          REVISION: ${{ inputs.revision }}
+        run: |
+          BACKUP_MANIFEST="$RUNNER_TEMP/jtj2-backup.json" BACKUP_EXPECTED_REVISION="$REVISION" pnpm backup:check
+      - name: Verify rollback plan (dry-run only)
+        env:
+          REVISION: ${{ inputs.revision }}
+        run: |
+          ROLLBACK_PLAN="$RUNNER_TEMP/jtj2-rollback.json" ROLLBACK_EXPECTED_TARGET_REVISION="$REVISION" pnpm rollback:check
       - name: Verify approved staging smoke evidence
         env:
           STAGING_EVIDENCE: ${{ secrets.PRODUCTION_STAGING_EVIDENCE }}

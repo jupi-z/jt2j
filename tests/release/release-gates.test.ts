@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { buildSmokeChecks, parseSmokeConfig } from '../../scripts/smoke-public';
 import {
@@ -15,6 +16,28 @@ import {
 import { verifyContactSmokeResponse } from '../../scripts/smoke-public';
 
 describe('release gate scripts', () => {
+  it('materializes revision-bound production artifacts before local checks', async () => {
+    const workflow = await readFile(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../.github/workflows/deploy-production.yml',
+      ),
+      'utf8',
+    );
+
+    expect(workflow).toContain('actions: read');
+    expect(workflow).toContain('PRODUCTION_ARTIFACT_RUN_ID');
+    expect(workflow).toContain('gh run download "$ARTIFACT_RUN_ID"');
+    expect(workflow).toContain('jt2j-production-backup-database-${REVISION}');
+    expect(workflow).toContain('jt2j-production-backup-media-${REVISION}');
+    expect(workflow).toContain('jt2j-production-rollback-${REVISION}');
+    expect(workflow).toContain('.database.path=$database_path');
+    expect(workflow).toContain('.media.path=$media_path');
+    expect(workflow).toContain('.artifact.path=$rollback_path');
+    expect(workflow).toContain('BACKUP_EXPECTED_REVISION="$REVISION"');
+    expect(workflow).toContain('ROLLBACK_EXPECTED_TARGET_REVISION="$REVISION"');
+  });
+
   it('requires an explicit base URL and covers every public locale route', () => {
     const config = parseSmokeConfig({
       SMOKE_BASE_URL: 'https://staging.example.test/',

@@ -73,3 +73,23 @@ Base: `c1c38c1`
 | `actionlint`                                               | DEFERRED — executable unavailable in this environment (`actionlint unavailable: executable not found`) |
 
 No GitHub Actions run, staging deployment, production deployment, backup creation/restore, or rollback was executed. These remain external/manual gates and no production state was changed.
+
+## Fix round 2/5 — end-to-end artifact materialization
+
+Finding addressed: the production preflight previously received only manifest/plan JSON, while the referenced files were absent from the clean GitHub runner. It now requires `PRODUCTION_ARTIFACT_RUN_ID`, downloads three revision-named artifacts from that GitHub Actions run, requires the exact non-empty files `database.dump`, `media.tar` and `previous-release.tar`, rewrites only the manifest paths to those local files, and then runs the existing checksum/freshness/release/revision checks. Missing inputs, download failures or missing files fail closed. No provider credential or production action was added.
+
+Manual prerequisite: an authorized backup job must upload `jt2j-production-backup-database-<revision>`, `jt2j-production-backup-media-<revision>` and `jt2j-production-rollback-<revision>` in the same repository, with the exact file names documented in `docs/operations/deployment.md`; the operator must store that run's numeric ID as `PRODUCTION_ARTIFACT_RUN_ID` and provide manifests whose checksums and release/revision bindings describe those exact files. If the provider cannot export artifacts into such a run, the production workflow remains blocked pending a reviewed provider-specific materialization step.
+
+### Commands and output
+
+| Command | Result |
+| --- | --- |
+| `pnpm exec vitest run tests/release/release-gates.test.ts` | PASS — 1 file / 5 tests; includes the workflow materialization contract |
+| `pnpm test` | PASS — 20 files / 177 tests; existing Payload no-email-adapter warnings only |
+| `pnpm typecheck` | PASS — route types generated and `tsc --noEmit` completed with code 0 |
+| `pnpm lint` | PASS — zero errors/warnings |
+| `pnpm build` | PASS — Next production build; 45 static pages generated |
+| `pnpm exec prettier --check .github/workflows/deploy-production.yml docs/operations/deployment.md tests/release/release-gates.test.ts` | PASS — all changed files formatted |
+| `git diff --check` | PASS |
+
+No GitHub Actions run was dispatched or observed. Staging, production deployment, real artifact export, restore rehearsal, rollback rehearsal and all provider/external gates remain deferred; no production state changed.
