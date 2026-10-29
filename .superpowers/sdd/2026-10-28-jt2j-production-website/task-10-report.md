@@ -120,3 +120,21 @@ After diagnosing the mobile project binding, a narrow rerun was started with `JT
 - The final verification is not a release-green result: the dependency audit is open, the full Playwright matrix is non-green, and the post-diagnosis mobile rerun is incomplete.
 - No WebKit test is claimed as run or required. The mobile project binding must be corrected in a future QA-only change and rerun before release.
 - No deployment, public smoke, backup/restore rehearsal, rollback rehearsal, legal/editorial approval, or human business acceptance was performed.
+
+## Fix round 3 — final gate correction — 2026-10-29
+
+### Implemented
+
+- Replaced `devices['iPhone 13']` with `devices['Pixel 5']` for the `mobile-chromium` project. Pixel 5 is a Chromium mobile descriptor; no WebKit project is configured or launched.
+- Set Playwright `workers: 1` for the fixture-backed `next dev` harness. The prior complete matrix showed two desktop SEO request timeouts with `Request context disposed`; the same SEO file passed independently (`5 passed`) and the serial full run reached all five SEO tests successfully. The change addresses concurrent on-demand route compilation/readiness pressure in the development server and does not weaken or alter any SEO assertion.
+
+### Exact verification evidence
+
+- `JT2J_E2E_FIXTURES=1 pnpm exec playwright test tests/e2e --project=mobile-chromium` — exit 0; **69 passed (3.1m)**, using Chromium only.
+- `JT2J_E2E_FIXTURES=1 pnpm e2e` — started with **253 tests using 1 worker** after the correction, but was intentionally interrupted by the user while the matrix was still running. It has no final test count or exit code and is not claimed as passing. The output had reached test 150/253 and had already reported all five `tests/routing/seo.spec.ts` tests as passed, but this is not a final matrix result.
+- No rerun of `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`, or `pnpm audit --prod` was required for this configuration/report-only follow-up; the exact prior gate results remain those recorded above. The audit reservation remains one low-severity `deepmerge` advisory across 6 dependency paths, exit 1, with no patched version reported.
+
+### Remaining reservations
+
+- The complete post-fix `pnpm e2e` matrix still lacks a final exit status because it was stopped at the user's request; its result must remain open until a complete run is authorized.
+- No deployment, public smoke, backup/restore rehearsal, rollback rehearsal, legal/editorial approval, or human business acceptance was performed.

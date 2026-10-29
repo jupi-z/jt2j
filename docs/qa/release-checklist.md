@@ -8,10 +8,10 @@
 - [x] `pnpm build` — exit 0; 45 static pages generated and route optimization completed
 - [ ] `pnpm audit --prod` — exit 1; one low `deepmerge` advisory across 6 paths, no patched version reported
 - [ ] Full Playwright matrix — completed non-green: 253 scheduled, 180 passed, 73 failed in 6.1 minutes
-- [ ] Desktop Playwright — two SEO tests timed out with `Request context disposed` under the full matrix
-- [ ] Mobile Chromium Playwright — 71 failures attempted to launch missing `webkit-2370`; the current iPhone 13 descriptor binds this project to WebKit. WebKit is not an accepted project for this gate.
+- [ ] Desktop Playwright — the prior concurrent matrix had two SEO timeouts with `Request context disposed`; after serializing the fixture-backed `next dev` harness, all five SEO tests were observed passing in the interrupted follow-up, but the full matrix has no final exit status
+- [x] Mobile Chromium Playwright — `JT2J_E2E_FIXTURES=1 pnpm exec playwright test tests/e2e --project=mobile-chromium`; 69 tests passed in 3.1 minutes; Pixel 5 Chromium descriptor used, no WebKit launched
 - [ ] Reduced-motion Playwright — included in the non-green full matrix; no standalone completion claim is made
-- [ ] Narrow post-diagnosis mobile rerun — interrupted by the user after announcing 69 tests; no final count or exit code
+- [x] Targeted post-correction mobile rerun — 69 passed in 3.1 minutes, exit 0
 
 ## Coverage included in Task 10
 
@@ -30,7 +30,7 @@
 ## Fix round 1 status
 
 - [x] Isolated bilingual published-shaped browser fixtures and explicit fixture server launcher added.
-- [x] Required mobile coverage uses Chromium/iPhone 13; WebKit is not required.
+- [x] Required mobile coverage uses Chromium/Pixel 5; WebKit is not required.
 - [x] Search, division filter, FAQ, contact success/error, responsive, locale, and representative accessibility assertions expanded.
 - [ ] Full post-fix `pnpm e2e`, `pnpm test`, `pnpm build`, and audit remain to be rerun; see the fix-round report for exact reservations.
 
@@ -38,5 +38,6 @@
 
 - The unit, lint, typecheck, and production build gates passed with the exact results above.
 - The dependency audit and full Playwright matrix remain open. No release-green claim is made.
-- The portable fixture launcher was used for Playwright. No WebKit test was intentionally run; the mobile project configuration defect must be corrected and rerun in a future QA-only change.
-- The interrupted mobile rerun has no final result and must not be counted as passed.
+- The portable fixture launcher was used for Playwright. The mobile project now uses Pixel 5 Chromium; no WebKit test was intentionally run.
+- The post-correction full matrix was interrupted and has no final result; only the targeted mobile result is counted as passed.
+- The two historical SEO timeouts are documented as a concurrent `next dev` on-demand compilation/readiness issue. SEO assertions were preserved unchanged; all five SEO tests were observed passing under the serial harness before the full run was stopped.
