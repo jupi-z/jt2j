@@ -152,4 +152,24 @@ The stopped-agent worktree was inspected without reset or deletion. The current 
 - `$env:JT2J_E2E_FIXTURES='1'; pnpm exec playwright test tests/e2e/navigation.spec.ts --project=mobile-chromium --grep 'mobile navigation'` — exit 0; 1 test passed in 10.3 seconds. This is a targeted mobile Chromium check, not the complete mobile project.
 - `$env:JT2J_E2E_FIXTURES='1'; pnpm exec playwright test tests/routing/seo.spec.ts --project=desktop-chromium` — exit 0; all 5 SEO tests passed in 36.6 seconds.
 
-These results validate the launcher, the mobile Chromium binding, and the SEO suite only at the stated scope. They do not convert the historical 253-test matrix into a full-E2E pass: the recorded full matrix remains 180 passed / 73 failed, and the later serial full run was interrupted without a final exit code. The dependency audit remains open with the previously recorded low `deepmerge` advisory. No new full E2E, unit, lint, typecheck, build, audit, deployment, backup/restore, rollback, legal/editorial, or business-acceptance claim is made here.
+At that earlier point, these results validated only the launcher, mobile Chromium binding, and SEO suite; the historical 180 passed / 73 failed matrix and interrupted serial run were superseded by the complete continuation verification below. The dependency audit reservation remained open. No deployment, backup/restore, rollback, legal/editorial, or business-acceptance claim was made here.
+
+## Final continuation verification — 2026-10-29
+
+Scope: complete post-fix QA gates requested for Task 10. No application source or test assertions were changed during this verification.
+
+### Executed commands and exact results
+
+- `$env:JT2J_E2E_FIXTURES='1'; pnpm e2e` — exit 0; **253/253 tests passed** in 8.6 minutes using one worker across desktop Chromium, mobile Chromium, and reduced-motion projects. No WebKit project was launched.
+- `$env:JT2J_E2E_FIXTURES='1'; pnpm exec playwright test tests/e2e --project=reduced-motion` — exit 0; **11/11 tests passed** in 47.1 seconds.
+- `pnpm test` — exit 0; **20 test files and 177 tests passed** in 64.38 seconds. The expected local Payload warning about no email adapter was emitted.
+- `pnpm lint` — exit 0; ESLint completed with `--max-warnings 0`.
+- `pnpm typecheck` — exit 0; Next route types generated successfully and `tsc --noEmit` completed.
+- `pnpm build` — exit 0; production build completed, **45/45 static pages generated**, and route optimization completed.
+- `pnpm audit --prod` — exit 1; **one low-severity `deepmerge` prototype-poisoning advisory** across 6 dependency paths, with no patched version reported.
+
+### Remaining reservations
+
+- Dependency audit remains open because the upstream `deepmerge` advisory has no patched version in the resolved dependency graph.
+- The E2E run uses the explicitly opt-in fixture-backed local harness; it verifies the real Next routes/UI with deterministic published-shaped content, not live CMS/database content. CMS persistence, transactional email delivery, rate limiting, and admin receipt remain integration-environment gates.
+- No staging or production deployment, public smoke, backup/restore rehearsal, rollback rehearsal, legal/editorial approval, or human business acceptance was performed.

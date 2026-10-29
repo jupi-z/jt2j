@@ -7,10 +7,10 @@
 - [x] `pnpm typecheck` — exit 0; route type generation and `tsc --noEmit` completed
 - [x] `pnpm build` — exit 0; 45 static pages generated and route optimization completed
 - [ ] `pnpm audit --prod` — exit 1; one low `deepmerge` advisory across 6 paths, no patched version reported
-- [ ] Full Playwright matrix — completed non-green: 253 scheduled, 180 passed, 73 failed in 6.1 minutes
-- [ ] Desktop Playwright — the prior concurrent matrix had two SEO timeouts with `Request context disposed`; after serializing the fixture-backed `next dev` harness, all five SEO tests were observed passing in the interrupted follow-up, but the full matrix has no final exit status
+- [x] Full fixture-backed Playwright matrix — `$env:JT2J_E2E_FIXTURES='1'; pnpm e2e`; exit 0; 253/253 passed in 8.6 minutes with one worker across desktop Chromium, mobile Chromium, and reduced-motion; no WebKit launched
+- [x] Desktop Chromium Playwright — included in the full matrix; all scheduled tests passed
 - [x] Mobile Chromium Playwright — `JT2J_E2E_FIXTURES=1 pnpm exec playwright test tests/e2e --project=mobile-chromium`; 69 tests passed in 3.1 minutes; Pixel 5 Chromium descriptor used, no WebKit launched
-- [ ] Reduced-motion Playwright — included in the non-green full matrix; no standalone completion claim is made
+- [x] Reduced-motion Playwright — `$env:JT2J_E2E_FIXTURES='1'; pnpm exec playwright test tests/e2e --project=reduced-motion`; exit 0; 11/11 passed in 47.1 seconds
 - [x] Targeted post-correction mobile rerun — 69 passed in 3.1 minutes, exit 0
 - [x] Fresh short validation — `pnpm exec playwright test --list` exit 0 (253 tests / 9 files); targeted mobile navigation exit 0 (1 passed); targeted SEO exit 0 (5 passed)
 
@@ -48,4 +48,15 @@
 - The fixture launcher was inspected: `scripts/e2e-server.mjs` starts Next through Node with `shell: false`, binds port 3100, and injects `JT2J_E2E_FIXTURES=1`.
 - `playwright.config.ts` currently binds `mobile-chromium` to `devices['Pixel 5']`; no iPhone 13/WebKit project is configured.
 - Fresh targeted results: mobile navigation 1 passed in 10.3 seconds; SEO 5 passed in 36.6 seconds. These are scoped checks only and do not claim full E2E completion.
-- The audit, reduced-motion standalone run, and complete post-fix Playwright matrix remain open. No release-green claim is made.
+- At that earlier short-validation point, the audit, reduced-motion standalone run, and complete post-fix Playwright matrix remained open; they are resolved or updated by the final continuation verification below. No release-green claim is made solely from the short validation.
+
+## Final continuation verification — 2026-10-29
+
+- Full fixture-backed matrix: `$env:JT2J_E2E_FIXTURES='1'; pnpm e2e` — exit 0; 253/253 passed in 8.6 minutes using one worker across desktop Chromium, mobile Chromium, and reduced-motion. No WebKit project was launched.
+- Standalone reduced motion: `$env:JT2J_E2E_FIXTURES='1'; pnpm exec playwright test tests/e2e --project=reduced-motion` — exit 0; 11/11 passed in 47.1 seconds.
+- `pnpm test` — exit 0; 20 files, 177 tests passed in 64.38 seconds.
+- `pnpm lint` — exit 0; ESLint completed with zero warnings.
+- `pnpm typecheck` — exit 0; route type generation and `tsc --noEmit` completed.
+- `pnpm build` — exit 0; 45/45 static pages generated and route optimization completed.
+- `pnpm audit --prod` — exit 1; one low-severity `deepmerge` advisory across 6 paths, no patched version reported. This remains the open automated release reservation.
+- The full E2E result is fixture-backed and does not replace CMS/database, email delivery, deployment, backup/rollback, legal/editorial, or human business-acceptance evidence.
