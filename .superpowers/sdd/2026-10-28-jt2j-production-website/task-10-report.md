@@ -138,3 +138,18 @@ After diagnosing the mobile project binding, a narrow rerun was started with `JT
 
 - The complete post-fix `pnpm e2e` matrix still lacks a final exit status because it was stopped at the user's request; its result must remain open until a complete run is authorized.
 - No deployment, public smoke, backup/restore rehearsal, rollback rehearsal, legal/editorial approval, or human business acceptance was performed.
+
+## Reprise finale courte — 2026-10-29
+
+The stopped-agent worktree was inspected without reset or deletion. The current checkout is clean before this documentation update; the expected Playwright correction is already present in the preceding commit:
+
+- `playwright.config.ts` uses `devices['Pixel 5']` for `mobile-chromium`, which is a Chromium mobile descriptor. No iPhone/WebKit project is configured.
+- `scripts/e2e-server.mjs` launches the local Next development server through the repository's Node executable with `shell: false`, binds `127.0.0.1:3100`, and sets `JT2J_E2E_FIXTURES=1` for the child process.
+
+### Fresh short validation
+
+- `pnpm exec playwright test --list` — exit 0; 253 tests in 9 files were discovered across `desktop-chromium`, `mobile-chromium`, and `reduced-motion`.
+- `$env:JT2J_E2E_FIXTURES='1'; pnpm exec playwright test tests/e2e/navigation.spec.ts --project=mobile-chromium --grep 'mobile navigation'` — exit 0; 1 test passed in 10.3 seconds. This is a targeted mobile Chromium check, not the complete mobile project.
+- `$env:JT2J_E2E_FIXTURES='1'; pnpm exec playwright test tests/routing/seo.spec.ts --project=desktop-chromium` — exit 0; all 5 SEO tests passed in 36.6 seconds.
+
+These results validate the launcher, the mobile Chromium binding, and the SEO suite only at the stated scope. They do not convert the historical 253-test matrix into a full-E2E pass: the recorded full matrix remains 180 passed / 73 failed, and the later serial full run was interrupted without a final exit code. The dependency audit remains open with the previously recorded low `deepmerge` advisory. No new full E2E, unit, lint, typecheck, build, audit, deployment, backup/restore, rollback, legal/editorial, or business-acceptance claim is made here.

@@ -12,6 +12,7 @@
 - [x] Mobile Chromium Playwright — `JT2J_E2E_FIXTURES=1 pnpm exec playwright test tests/e2e --project=mobile-chromium`; 69 tests passed in 3.1 minutes; Pixel 5 Chromium descriptor used, no WebKit launched
 - [ ] Reduced-motion Playwright — included in the non-green full matrix; no standalone completion claim is made
 - [x] Targeted post-correction mobile rerun — 69 passed in 3.1 minutes, exit 0
+- [x] Fresh short validation — `pnpm exec playwright test --list` exit 0 (253 tests / 9 files); targeted mobile navigation exit 0 (1 passed); targeted SEO exit 0 (5 passed)
 
 ## Coverage included in Task 10
 
@@ -41,3 +42,10 @@
 - The portable fixture launcher was used for Playwright. The mobile project now uses Pixel 5 Chromium; no WebKit test was intentionally run.
 - The post-correction full matrix was interrupted and has no final result; only the targeted mobile result is counted as passed.
 - The two historical SEO timeouts are documented as a concurrent `next dev` on-demand compilation/readiness issue. SEO assertions were preserved unchanged; all five SEO tests were observed passing under the serial harness before the full run was stopped.
+
+## Short validation — 2026-10-29
+
+- The fixture launcher was inspected: `scripts/e2e-server.mjs` starts Next through Node with `shell: false`, binds port 3100, and injects `JT2J_E2E_FIXTURES=1`.
+- `playwright.config.ts` currently binds `mobile-chromium` to `devices['Pixel 5']`; no iPhone 13/WebKit project is configured.
+- Fresh targeted results: mobile navigation 1 passed in 10.3 seconds; SEO 5 passed in 36.6 seconds. These are scoped checks only and do not claim full E2E completion.
+- The audit, reduced-motion standalone run, and complete post-fix Playwright matrix remain open. No release-green claim is made.
