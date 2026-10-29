@@ -39,7 +39,7 @@ Le badge Next.js visible sur les captures appartient uniquement au mode dévelop
 
 ## CI GitHub
 
-Le premier run du commit `bc9a65c` a validé PostgreSQL, l'installation verrouillée, les migrations, les 183 tests, le typecheck et le lint. Il s'est arrêté sur l'audit high à cause de `graphql-scalars@1.22.2` apporté par Payload. L'override workspace vers `>=2.0.1` est maintenant en place ; un nouveau run doit confirmer la correction distante.
+Le premier run du commit `bc9a65c` a validé PostgreSQL, l'installation verrouillée, les migrations, les 183 tests, le typecheck et le lint, puis s'est arrêté sur l'audit high à cause de `graphql-scalars@1.22.2` apporté par Payload. L'override workspace vers `>=2.0.1` a ensuite été validé par le run GitHub Actions `40969159969` (run 16), conclu avec succès.
 
 ## Limites restantes
 
