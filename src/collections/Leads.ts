@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload';
 import { adminOnly, sales } from '../access/roles';
-import { LeadStatusSelect } from '../admin/components/LeadStatusSelect';
 
 export const Leads: CollectionConfig = {
   slug: 'leads',
@@ -14,6 +13,13 @@ export const Leads: CollectionConfig = {
     { name: 'email', type: 'email', required: true },
     { name: 'phone', type: 'text' },
     { name: 'company', type: 'text' },
+    {
+      name: 'intent',
+      type: 'select',
+      defaultValue: 'general',
+      options: ['general', 'quote', 'partnership', 'other'],
+    },
+    { name: 'city', type: 'text' },
     { name: 'message', type: 'textarea', required: true },
     { name: 'sourcePage', type: 'text', required: true, maxLength: 240 },
     {
@@ -31,7 +37,7 @@ export const Leads: CollectionConfig = {
       defaultValue: 'new',
       required: true,
       options: ['new', 'assigned', 'in-progress', 'closed', 'spam'],
-      admin: { components: { Field: LeadStatusSelect as never } },
+      admin: { components: { Field: '/src/admin/components/LeadStatusSelect#LeadStatusSelect' } },
     },
     {
       name: 'notificationStatus',

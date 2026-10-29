@@ -51,9 +51,10 @@ describe('public route composition', () => {
                     ? '/services/'
                     : '/') + record.slug),
         );
-        expect(doc.querySelector('h1')?.textContent).toBe(
-          expected!.title[locale],
-        );
+        const expectedHeading = 'heading' in expected!
+          ? expected!.heading[locale]
+          : expected!.title[locale];
+        expect(doc.querySelector('h1')?.textContent).toBe(expectedHeading);
         expect(html).not.toMatch(
           /editorialNotes|publicationApproved|translationIssues|claims/,
         );

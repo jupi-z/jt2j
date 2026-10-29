@@ -225,6 +225,8 @@ export interface Page {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Files are immutable. Upload a new media record to replace an asset, then update its content relationship. Metadata remains editable.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
@@ -452,6 +454,8 @@ export interface Lead {
   email: string;
   phone?: string | null;
   company?: string | null;
+  intent?: ('general' | 'quote' | 'partnership' | 'other') | null;
+  city?: string | null;
   message: string;
   sourcePage: string;
   idempotencyKey?: string | null;
@@ -872,6 +876,8 @@ export interface LeadsSelect<T extends boolean = true> {
   email?: T;
   phone?: T;
   company?: T;
+  intent?: T;
+  city?: T;
   message?: T;
   sourcePage?: T;
   idempotencyKey?: T;

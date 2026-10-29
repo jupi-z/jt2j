@@ -13,12 +13,19 @@ export async function renderRoute(value: string, path: string) {
   const route = findRoute(path);
   if (!route) notFound();
   const t = await getTranslations({ locale });
-  const home = { href: localePath(locale), label: t('pages.HOME') };
+  const fr = locale === 'fr';
+  const home = { href: localePath(locale), label: fr ? 'JT2J Company — Accueil' : 'JT2J Company — Home' };
   const links = pageRoutes
-    .filter((item) => item.path !== '' && item.path !== '/contact')
+    .filter((item) => !['', '/contact', '/faq'].includes(item.path))
     .map((item) => ({
       href: localePath(locale, item.path),
-      label: t(item.message),
+      label: item.path === '/entreprise'
+        ? (fr ? "L'entreprise" : 'Company')
+        : item.path === '/poles'
+          ? (fr ? 'Nos pôles' : 'Our divisions')
+          : item.path === '/approche'
+            ? (fr ? 'Notre approche' : 'Our approach')
+            : t(item.message),
       current: path === item.path || path.startsWith(`${item.path}/`),
     }));
   const localeLinks = routing.locales.map((language) => ({
@@ -33,7 +40,7 @@ export async function renderRoute(value: string, path: string) {
   }));
   const contact = {
     href: localePath(locale, '/contact'),
-    label: t('pages.CONTACT'),
+    label: fr ? 'Contact' : 'Contact',
     current: path === '/contact',
   };
   const queries = await getPublicContent();
@@ -41,6 +48,7 @@ export async function renderRoute(value: string, path: string) {
     <>
       <Header
         home={home}
+        brandLabel={fr ? 'COMPANY\nGROUPE MULTISERVICES' : 'COMPANY\nMULTISERVICE GROUP'}
         links={links}
         locale={locale}
         localeLinks={localeLinks}
@@ -53,17 +61,22 @@ export async function renderRoute(value: string, path: string) {
         }}
         mega={{ label: t('browseDivisions'), links: divisions }}
         cta={contact}
+        theme={path === '' ? 'dark' : 'light'}
       />
       <main id="main" tabIndex={-1}>
         <PublicRouteContent locale={locale} path={path} queries={queries} />
       </main>
       <Footer
         home={home}
+        brandLabel={fr ? 'COMPANY\nGROUPE MULTISERVICES' : 'COMPANY\nMULTISERVICE GROUP'}
+        description={fr ? 'Des services pour les particuliers et les entreprises, à Lubumbashi et Kolwezi.' : 'Services for individuals and businesses in Lubumbashi and Kolwezi.'}
+        tagline={fr ? "L'innovation pour tous vos besoins." : 'Innovation for all your needs.'}
         groups={[
           { label: t('navigation'), links: [...links, contact] },
           { label: t('pages.EXPERTISE'), links: divisions },
         ]}
         copyright="JT2J"
+        contact={<><h2>{fr ? 'Coordonnées' : 'Contact details'}</h2><a href="mailto:info@jt2j.com">info@jt2j.com</a><a href="tel:+243974004510">+243 974 004 510</a><span className="foot-text">@jt2jcompany</span><span className="foot-text">Lubumbashi et Kolwezi<br />{fr ? 'République démocratique du Congo' : 'Democratic Republic of the Congo'}</span></>}
         localeSwitch={{ label: t('languageLabel'), locale, links: localeLinks }}
       />
     </>

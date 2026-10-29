@@ -1,56 +1,21 @@
 import type { Locale } from '../../i18n/config';
-import type {
-  PublicPage,
-  PublicDivision,
-  PublicService,
-} from '../../queries/publicContent';
-import { PageHero, ContentSections, ContactCallout } from '../public/Sections';
-import { DivisionCards } from '../divisions/DivisionCards';
-import { ServiceCards } from '../services/ServiceCards';
+import type { PublicPage, PublicDivision, PublicService } from '../../queries/publicContent';
+import { AbstractArtwork } from '../art/AbstractArtwork';
+import { ContactCallout } from '../public/Sections';
 import { LinkArrow } from '../ui/LinkArrow';
-export function HomePage({
-  locale,
-  page,
-  divisions,
-  services,
-  labels,
-  contactHref,
-}: {
-  locale: Locale;
-  page: PublicPage;
-  divisions: PublicDivision[];
-  services: PublicService[];
-  labels: {
-    divisions: string;
-    services: string;
-    discover: string;
-    contact: string;
-  };
-  contactHref: string;
-}) {
+import { Button } from '../ui/Button';
+
+export function HomePage({ locale, page, divisions, services, labels, contactHref }: { locale: Locale; page: PublicPage; divisions: PublicDivision[]; services: PublicService[]; labels: { divisions: string; services: string; discover: string; contact: string }; contactHref: string }) {
+  const fr = locale === 'fr';
+  const sections = page.sections;
   return (
     <>
-      <PageHero title={page.title} lead={page.lead} />
-      <section className="wrap section">
-        <h2>{labels.divisions}</h2>
-        <DivisionCards locale={locale} divisions={divisions} />
-        <LinkArrow href={`/${locale}/poles`}>{labels.discover}</LinkArrow>
-      </section>
-      <section className="wrap section">
-        <h2>{labels.services}</h2>
-        <ServiceCards locale={locale} services={services} />
-        <LinkArrow href={`/${locale}/services`}>{labels.discover}</LinkArrow>
-      </section>
-      <ContentSections sections={page.sections} />
-      <section className="wrap actions">
-        <LinkArrow href={`/${locale}/entreprise`}>
-          {locale === 'fr' ? 'Notre entreprise' : 'Our company'}
-        </LinkArrow>
-        <LinkArrow href={`/${locale}/approche`}>
-          {locale === 'fr' ? 'Notre approche' : 'Our approach'}
-        </LinkArrow>
-      </section>
-      <ContactCallout label={labels.contact} href={contactHref} />
+      <section className="home-hero"><div className="wrap"><div className="hero-grid"><div className="hero-copy"><p className="eyebrow gold">LUBUMBASHI · KOLWEZI · {fr ? 'RDC' : 'DRC'}</p><h1>{page.title.replace(fr ? 'ne se ressemblent pas.' : 'connected range of services.', '')}<em>{fr ? 'ne se ressemblent pas.' : 'connected range of services.'}</em></h1><p>{page.lead}</p><div className="actions"><Button className="hero-cta-primary" href={`/${locale}/poles`}>{fr ? 'Explorer nos pôles' : 'Explore our divisions'}</Button><LinkArrow className="hero-cta-secondary" href={contactHref}>{fr ? 'Nous contacter' : 'Contact us'}</LinkArrow></div></div><div className="hero-art"><AbstractArtwork variant="home" /><span className="art-caption">{fr ? 'Composition abstraite — cinq univers' : 'Abstract composition — five areas'}</span></div></div><div className="hero-bottom">{divisions.map((division) => <a key={division.slug} href={`/${locale}/poles/${division.slug}`}><span className="number">0{division.order}</span><span className="name">{division.title}</span><span aria-hidden="true">↗</span></a>)}</div></div></section>
+      <section className="section intro-section"><div className="wrap intro"><div><p className="eyebrow">{fr ? 'UN GROUPE, UNE AMBITION' : 'ONE COMPANY, ONE AMBITION'}</p><h2>{sections[0]?.title}</h2></div><div className="intro-body"><p>{sections[0]?.body}</p><div className="places"><span className="place">Lubumbashi</span><span className="place">Kolwezi</span></div><LinkArrow href={`/${locale}/entreprise`}>{sections[0]?.link ?? (fr ? 'Découvrir JT2J Company' : 'Discover JT2J Company')}</LinkArrow></div></div></section>
+      <section className="section division-section"><div className="wrap"><div className="section-heading"><div><p className="eyebrow">{sections[1]?.eyebrow}</p><h2>{sections[1]?.title}</h2></div><p>{sections[1]?.body}</p></div><div className="division-layout"><div className="division-visual"><AbstractArtwork variant="security" /><span className="art-name"><span>{divisions[0]?.title}</span><span>01 / 05</span></span></div><div className="division-rows">{divisions.map((division) => <a className="division-row" data-division-card key={division.slug} href={`/${locale}/poles/${division.slug}`}><span className="n">0{division.order}</span><span><h3>{division.title}</h3><p>{division.summary}</p></span><span className="arrow-round" aria-hidden="true">↗</span></a>)}</div></div><LinkArrow href={`/${locale}/poles`}>{labels.discover}</LinkArrow></div></section>
+      <section className="section services-section"><div className="wrap"><div className="section-heading"><div><p className="eyebrow">{fr ? 'NOS SERVICES' : 'OUR SERVICES'}</p><h2>{sections[2]?.title}</h2></div><LinkArrow href={`/${locale}/services`}>{sections[2]?.link ?? labels.discover}</LinkArrow></div><p className="section-intro">{sections[2]?.body}</p><div className="service-grid">{services.map((service) => <a className="service-item" data-service-card key={service.slug} href={`/${locale}/services/${service.slug}`}><span className="service-number">0{service.order}</span><span><p className="eyebrow">{service.eyebrow}</p><h3>{service.title}</h3><p>{service.summary}</p></span><span aria-hidden="true">↗</span></a>)}</div><LinkArrow href={`/${locale}/services`}>{labels.discover}</LinkArrow></div></section>
+      <section className="section commitment"><div className="wrap commitment-grid"><div><p className="eyebrow">{sections[3]?.eyebrow}</p><h2>{sections[3]?.title}</h2><p>{sections[3]?.body}</p><div className="value-tags">{(fr ? ['Le professionnalisme', "L'intégrité et l'honnêteté", "L'esprit d'équipe"] : ['Professionalism', 'Integrity and honesty', 'Teamwork']).map((value) => <span key={value}>{value}</span>)}</div><LinkArrow href={`/${locale}/entreprise`}>{sections[3]?.link}</LinkArrow></div><div className="commit-art"><AbstractArtwork variant="commitment" light /></div></div></section>
+      <ContactCallout label={sections[4]?.link ?? labels.contact} href={contactHref} title={sections[4]?.title} body={sections[4]?.body} />
     </>
   );
 }

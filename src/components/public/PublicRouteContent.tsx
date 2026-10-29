@@ -1,12 +1,9 @@
 import type { Locale } from '../../i18n/config';
 import type { PublicContentQueries } from '../../queries/publicContent';
 import { HomePage } from '../home/HomePage';
-import { DivisionsPage } from '../divisions/DivisionsPage';
-import { DivisionDetail } from '../divisions/DivisionDetail';
 import { ServicesPage } from '../services/ServicesPage';
-import { ServiceDetail } from '../services/ServiceDetail';
-import { FaqPage } from '../faq/FaqPage';
 import { ContactForm } from '../contact/ContactForm';
+import { CompanyPage, ApproachPage, PrototypeFaqPage, PrototypeExpertisePage, PrototypeContactPage, PrototypeDivisionDetail, PrototypeServiceDetail } from './PrototypePages';
 import {
   PageHero,
   PageBreadcrumbs,
@@ -37,30 +34,9 @@ export function PublicRouteContent({
     ? services.find((s) => path === `/services/${s.slug}`)
     : undefined;
   if (division)
-    return (
-      <DivisionDetail
-        locale={locale}
-        division={division}
-        services={services.filter((s) => s.division === division.slug)}
-        breadcrumbs={{
-          home: dictionary.pages.HOME,
-          divisions: dictionary.pages.EXPERTISE,
-        }}
-        contactLabel={division.cta}
-        contactHref={`${contactHref}?division=${encodeURIComponent(division.slug)}`}
-      />
-    );
+    return <PrototypeDivisionDetail locale={locale} division={division} services={services.filter((s) => s.division === division.slug)} contactHref={contactHref} />;
   if (service)
-    return (
-      <ServiceDetail
-        locale={locale}
-        service={service}
-        division={divisions.find((d) => d.slug === service.division)!}
-        related={services.filter(
-          (s) => s.slug !== service.slug && s.division === service.division,
-        )}
-      />
-    );
+    return <PrototypeServiceDetail locale={locale} service={service} division={divisions.find((d) => d.slug === service.division)!} related={services.filter((s) => s.slug !== service.slug && s.division === service.division)} contactHref={contactHref} />;
   const page = queries
     .getPages(locale)
     .find((p) => path === (p.key === 'HOME' ? '' : `/${p.slug}`));
@@ -110,8 +86,12 @@ export function PublicRouteContent({
         contactHref={contactHref}
       />
     );
+  if (path === '/entreprise')
+    return <CompanyPage locale={locale} page={page} contactHref={contactHref} />;
+  if (path === '/approche')
+    return <ApproachPage locale={locale} page={page} contactHref={contactHref} />;
   if (path === '/poles')
-    return <DivisionsPage {...shared} divisions={divisions} />;
+    return <PrototypeExpertisePage locale={locale} page={page} divisions={divisions} contactHref={contactHref} />;
   if (path === '/services')
     return (
       <ServicesPage
@@ -134,13 +114,9 @@ export function PublicRouteContent({
       />
     );
   if (path === '/faq')
-    return (
-      <FaqPage
-        {...shared}
-        items={queries.getFaq(locale)}
-        contactHref={`${contactHref}?source=faq`}
-      />
-    );
+    return <PrototypeFaqPage locale={locale} page={page} items={queries.getFaq(locale)} contactHref={`${contactHref}?source=faq`} />;
+  if (path === '/contact')
+    return <PrototypeContactPage locale={locale} page={page} />;
   return (
     <>
       <PageBreadcrumbs locale={locale} title={page.title} />

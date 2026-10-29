@@ -24,6 +24,8 @@ export const leadRequestSchema = z
     email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
     phone: phoneSchema,
     company: optionalTrimmedText(160),
+    intent: z.enum(['general', 'quote', 'partnership', 'other']).default('general'),
+    city: optionalTrimmedText(120),
     message: z.string().trim().min(10).max(5000),
     locale: z.enum(['fr', 'en']),
     sourcePage: z

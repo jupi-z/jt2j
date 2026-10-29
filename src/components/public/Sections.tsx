@@ -73,10 +73,11 @@ export function ContactCallout({
   body?: string;
 }) {
   return (
-    <section className="wrap section public-contact">
-      {title && <h2>{title}</h2>}
-      {body && <p>{body}</p>}
-      <Button href={href}>{label}</Button>
+    <section className="contact-cta">
+      <div className="wrap">
+        <div>{title && <h2>{title}</h2>}{body && <p>{body}</p>}</div>
+        <Button href={href}>{label}</Button>
+      </div>
     </section>
   );
 }

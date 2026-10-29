@@ -35,38 +35,16 @@ export function ServiceCatalogue({
   );
   return (
     <>
-      <div
-        className="catalogue-controls"
-        role="search"
-        aria-label={labels.search}
-      >
-        <div>
-          <label htmlFor={`${id}-search`}>{labels.search}</label>
-          <input
-            id={`${id}-search`}
-            type="search"
-            aria-label={labels.search}
-            value={query}
-            onInput={(event) => setQuery(event.currentTarget.value)}
-          />
+      <div className="catalogue-controls" role="search" aria-label={labels.search}>
+        <div className="search-box"><label className="sr-only" htmlFor={`${id}-search`}>{labels.search}</label><input id={`${id}-search`} type="search" placeholder={`${labels.search}…`} aria-label={labels.search} value={query} onInput={(event) => setQuery(event.currentTarget.value)} /></div>
+        <div className="filters" aria-label={locale === 'fr' ? 'Filtrer par pôle' : 'Filter by division'}>
+          <button type="button" className={`filter${division === '' ? ' active' : ''}`} aria-pressed={division === ''} onClick={() => setDivision('')}>{labels.all}</button>
+          {divisions.map((item) => <button type="button" className={`filter${division === item.slug ? ' active' : ''}`} aria-pressed={division === item.slug} onClick={() => setDivision(item.slug)} key={item.slug}>{item.title}</button>)}
         </div>
-        <div>
-          <label htmlFor={`${id}-division`}>
-            {locale === 'fr' ? 'Pôle' : 'Division'}
-          </label>
-          <select
-            id={`${id}-division`}
-            value={division}
-            onChange={(event) => setDivision(event.currentTarget.value)}
-          >
-            <option value="">{labels.all}</option>
-            {divisions.map((item) => (
-              <option value={item.slug} key={item.slug}>
-                {item.title}
-              </option>
-            ))}
-          </select>
-        </div>
+        <label className="sr-only" htmlFor={`${id}-division`}>{locale === 'fr' ? 'Pôle' : 'Division'}</label>
+        <select className="sr-only" id={`${id}-division`} value={division} onChange={(event) => setDivision(event.currentTarget.value)}>
+          <option value="">{labels.all}</option>{divisions.map((item) => <option value={item.slug} key={item.slug}>{item.title}</option>)}
+        </select>
       </div>
       <p role="status" aria-live="polite" aria-atomic="true">
         {filtered.length === 0

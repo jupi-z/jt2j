@@ -55,6 +55,8 @@ export async function processLeadNotificationRetries({
       email: String(lead.email || ''),
       phone: lead.phone ? String(lead.phone) : undefined,
       company: lead.company ? String(lead.company) : undefined,
+      intent: lead.intent ? String(lead.intent) : undefined,
+      city: lead.city ? String(lead.city) : undefined,
       message: String(lead.message || ''),
       sourcePage: String(lead.sourcePage || ''),
       locale: lead.locale === 'en' ? 'en' : 'fr',

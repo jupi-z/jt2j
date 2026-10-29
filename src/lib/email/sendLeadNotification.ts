@@ -4,6 +4,8 @@ export type LeadNotification = Pick<
   Lead,
   'id' | 'name' | 'email' | 'phone' | 'company' | 'message' | 'sourcePage' | 'locale'
 > & {
+  intent?: string;
+  city?: string;
   division?: string;
   service?: string;
 };
@@ -28,6 +30,8 @@ export async function sendLeadNotification(lead: LeadNotification): Promise<void
         `Email: ${lead.email}`,
         lead.phone ? `Phone: ${lead.phone}` : null,
         lead.company ? `Company: ${lead.company}` : null,
+        lead.intent ? `Intent: ${lead.intent}` : null,
+        lead.city ? `City: ${lead.city}` : null,
         `Locale: ${lead.locale}`,
         `Source: ${lead.sourcePage}`,
         lead.division ? `Division: ${lead.division}` : null,
