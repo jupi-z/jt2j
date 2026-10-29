@@ -1,8 +1,9 @@
 # JT2J release QA checklist
 
 This checklist separates repository evidence from external launch approvals.
-Unchecked staging, production, legal, editorial, business, mail, backup, and
-rollback items are not implied to be complete.
+No staging environment is part of this delivery model. Unchecked production,
+legal, editorial, business, mail, backup, and rollback items are not implied to
+be complete.
 
 ## Automated gates
 
@@ -29,7 +30,7 @@ rollback items are not implied to be complete.
 
 - Local runs without `DATABASE_URL` and `PAYLOAD_SECRET` intentionally fail closed to empty published content. Do not expose draft seed content just to make the search/FAQ checks pass.
 - Contact success is browser-mocked; transactional email delivery, persistence, rate limiting, and admin receipt require a configured disposable integration environment.
-- No staging or production deployment, backup, rollback, legal approval, content approval, or business acceptance was performed by Task 10.
+- No production deployment, backup, rollback, legal approval, content approval, or business acceptance was performed by Task 10. No staging environment is required by this delivery model.
 - The Next.js development server reports its expected React `eval()` warning. This is not production evidence.
 
 ## Fix round 1 status
@@ -89,8 +90,6 @@ rollback items are not implied to be complete.
 - [ ] Brand assets, media rights, credits, and alt text approved and evidenced.
 - [ ] Contact destination, consent/privacy wording, retention, and escalation
       owner approved; real mail delivery verified with an approved test path.
-- [ ] Staging deployment completed for the exact release revision and its
-      public FR/EN smoke log reviewed.
 - [ ] Provider-generated database and media backups verified for the exact
       revision; retention and recovery owner recorded.
 - [ ] Restore rehearsal completed in an isolated environment and evidence
@@ -111,6 +110,6 @@ test, a dry-run checker, or the existence of a workflow file. Use
 
 The repository contains no production credentials or provider evidence. The
 documented CI and local/fixture QA results are technical evidence for this
-revision only. They do not establish that staging or production is reachable,
+revision only. They do not establish that production is reachable,
 that mail is delivered, that a backup can be restored, that traffic can be
 rolled back, or that JT2J has accepted the business result.

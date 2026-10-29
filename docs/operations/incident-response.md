@@ -14,7 +14,7 @@ For suspected data exposure, restrict admin/API access, preserve relevant audit 
 
 Generate new random credentials in the secret manager, update the dependent service, deploy through the reviewed release path, verify health and authenticated workflows, then revoke the old credential. Rotate database, storage and mail credentials independently when possible. After rotation, check that old credentials fail and that logs contain no secret values.
 
-Restore from the last verified backup only after recording the target snapshot and integrity checks. Re-run security, migration and smoke checks in staging or an isolated environment before traffic changes.
+Restore from the last verified backup only after recording the target snapshot and integrity checks. Re-run security, migration and smoke checks in an isolated environment before traffic changes; no staging environment is required by this delivery model.
 
 ## Closure
 

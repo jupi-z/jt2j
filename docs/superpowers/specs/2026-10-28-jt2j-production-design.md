@@ -79,7 +79,8 @@ This approach keeps the public site, CMS, authentication, and business workflow 
 - Public smoke checks for every production route in both locales.
 - Keyboard and reduced-motion verification.
 - Database and media backup before production releases.
-- Staging approval before production deployment.
+- Protected, manually dispatched production deployment without a staging prerequisite.
+- Revision-bound backup and rollback-artifact verification before production deployment.
 - A documented rollback procedure tested before launch.
 
 ## Open decisions to confirm before implementation

@@ -25,8 +25,9 @@ The publisher may publish only when:
 1. The technical checklist is complete: FR/EN translations, required SEO,
    legal evidence fields, and media-rights evidence.
 2. The human approvals in this matrix are recorded.
-3. The release checklist has the required staging, backup, rollback, and
-   business-acceptance evidence.
+3. The release checklist has the required production, backup, rollback, and
+   business-acceptance evidence. No staging environment is part of this
+   delivery model.
 
 The repository currently verifies the first category in tests and admin hooks.
 It does not assert that a person has approved the second or third category.

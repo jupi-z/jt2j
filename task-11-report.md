@@ -1,7 +1,18 @@
-# Task 11 report — staging and release gates
+# Task 11 report — production release gates without staging
 
 Date: 2026-10-29
 Worktree: `feat/jt2j-production`
+
+## Delivery-model decision update — 2026-10-29
+
+This delivery model does not include a staging environment. Production remains
+a manually dispatched, protected-environment workflow with CI, revision-bound
+backup and rollback-artifact materialization, isolated dry-run verification,
+forward-only migration, required post-deploy public smoke, and a documented
+manual/provider-specific rollback decision. `deploy-staging.yml` is retained
+only as a clearly deprecated legacy workflow for traceability; it is not a
+release prerequisite. No production deployment or staging deployment was
+performed by this worktree.
 
 ## Delivered
 
@@ -11,8 +22,8 @@ Worktree: `feat/jt2j-production`
 - `Dockerfile` builds the Next standalone runtime; `docker-compose.yml` provides PostgreSQL and an optional app profile using required environment substitutions.
 - `.github/workflows/ci.yml` runs locked install, tests, typecheck, lint, high-severity audit, build and artifact retention.
 - CI PostgreSQL uses a disposable non-production password for the service and job database URL; production secrets remain unchanged.
-- `.github/workflows/deploy-staging.yml` is a manually dispatched, protected-environment workflow with controlled migration, restart and smoke gates.
-- `.github/workflows/deploy-production.yml` requires CI, protected production approval, dry-run backup/rollback evidence and staging evidence before controlled migration, restart and smoke gates.
+- `.github/workflows/deploy-staging.yml` is retained as a deprecated legacy workflow and is not part of the supported release path.
+- `.github/workflows/deploy-production.yml` requires CI, protected production approval, dry-run backup/rollback evidence before controlled migration, restart and smoke gates; no staging evidence gate remains.
 - `docs/operations/deployment.md` documents local usage, secret/environment requirements, migration policy and external reservations.
 
 ## Local evidence
@@ -38,7 +49,7 @@ Compose also fails closed when required environment variables are absent; no fal
 ## Not executed / blocked by external environment
 
 - No GitHub Actions run was dispatched or observed from this worktree.
-- No staging or production deployment was performed.
+- No production deployment was performed; no staging environment is part of this delivery model.
 - No GitHub environment protection, SSH host/key configuration, DNS/TLS, object storage, mail provider, provider backup, restore rehearsal, traffic switch or production rollback was verified.
 - No real backup was created, restored or deleted; no real rollback was exercised.
 - The remaining low audit advisory was not changed because no safe upstream resolution was available in this task.
@@ -50,7 +61,7 @@ The workflow files are release gates and deployment instructions, not evidence t
 - Run [40868025063](https://github.com/jupi-z/jt2j/actions/runs/40868025063) passed PostgreSQL service initialization, Node `22.13.0` setup and `pnpm install`.
 - The next `pnpm cms:migrate` step failed because `PAYLOAD_SECRET` and `CSRF_SECRET` were empty in the CI job. `src/payload/config.ts` requires `PAYLOAD_SECRET` to be at least 32 characters, so the migration gate stopped before the remaining tests and checks.
 - `.github/workflows/ci.yml` now provides the disposable, non-production literals `jt2j-ci-disposable-payload-secret-32-characters` and `jt2j-ci-disposable-csrf-secret-32-characters` directly in the CI job environment. They are distinct and each exceeds the 32-character minimum.
-- Production and staging secret-backed behavior is unchanged. The focused release-gate contract test asserts the two CI values are direct, distinct and sufficiently long, and confirms the staging and production smoke URLs still reference `STAGING_BASE_URL` and `PRODUCTION_BASE_URL` secrets.
+- The focused release-gate contract test asserts the two CI values are direct, distinct and sufficiently long, and confirms the production smoke URL still references `PRODUCTION_BASE_URL`; the legacy staging workflow is not a production prerequisite.
 - No remote rerun was dispatched from this worktree; remote verification remains external.
 
 ## Remote CI failure and correction
@@ -78,7 +89,7 @@ Base: `c1c38c1`
 - `scripts/smoke-public.ts` now accepts the contact smoke request only for HTTP `202` with JSON `{ accepted: true, testMode: true }`.
 - CI applies migrations twice against its disposable PostgreSQL service, providing an idempotent migration verification gate without targeting production.
 - `docker-compose.yml` builds the app database URL with the `postgres` service hostname.
-- Staging and production workflows now name forward-only migration and post-deploy smoke gates explicitly, and record failure as requiring a manual/provider-specific rollback decision. No automatic rollback is claimed or performed.
+- The production workflow names forward-only migration and post-deploy smoke gates explicitly, and records failure as requiring a manual/provider-specific rollback decision. No automatic rollback is claimed or performed; the staging workflow remains deprecated.
 - `docs/operations/deployment.md` documents the artifact schema, freshness/integrity checks, disposable CI migration gate, and the remaining provider-specific manual gates.
 
 ### Fix-round commands and outputs
@@ -95,7 +106,7 @@ Base: `c1c38c1`
 | `docker compose config --quiet` with local-only values     | PASS                                                                                                   |
 | `actionlint`                                               | DEFERRED — executable unavailable in this environment (`actionlint unavailable: executable not found`) |
 
-No GitHub Actions run, staging deployment, production deployment, backup creation/restore, or rollback was executed. These remain external/manual gates and no production state was changed.
+No GitHub Actions run, production deployment, backup creation/restore, or rollback was executed. These remain external/manual gates and no production state was changed; staging is not part of the delivery model.
 
 ## Fix round 2/5 — end-to-end artifact materialization
 
@@ -105,23 +116,23 @@ Manual prerequisite: an authorized backup job must upload `jt2j-production-backu
 
 ### Commands and output
 
-| Command | Result |
-| --- | --- |
-| `pnpm exec vitest run tests/release/release-gates.test.ts` | PASS — 1 file / 5 tests; includes the workflow materialization contract |
-| `pnpm test` | PASS — 20 files / 177 tests; existing Payload no-email-adapter warnings only |
-| `pnpm typecheck` | PASS — route types generated and `tsc --noEmit` completed with code 0 |
-| `pnpm lint` | PASS — zero errors/warnings |
-| `pnpm build` | PASS — Next production build; 45 static pages generated |
-| `pnpm exec prettier --check .github/workflows/deploy-production.yml docs/operations/deployment.md tests/release/release-gates.test.ts` | PASS — all changed files formatted |
-| `git diff --check` | PASS |
+| Command                                                                                                                                | Result                                                                       |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `pnpm exec vitest run tests/release/release-gates.test.ts`                                                                             | PASS — 1 file / 5 tests; includes the workflow materialization contract      |
+| `pnpm test`                                                                                                                            | PASS — 20 files / 177 tests; existing Payload no-email-adapter warnings only |
+| `pnpm typecheck`                                                                                                                       | PASS — route types generated and `tsc --noEmit` completed with code 0        |
+| `pnpm lint`                                                                                                                            | PASS — zero errors/warnings                                                  |
+| `pnpm build`                                                                                                                           | PASS — Next production build; 45 static pages generated                      |
+| `pnpm exec prettier --check .github/workflows/deploy-production.yml docs/operations/deployment.md tests/release/release-gates.test.ts` | PASS — all changed files formatted                                           |
+| `git diff --check`                                                                                                                     | PASS                                                                         |
 
-No GitHub Actions run was dispatched or observed. Staging, production deployment, real artifact export, restore rehearsal, rollback rehearsal and all provider/external gates remain deferred; no production state changed.
+No GitHub Actions run was dispatched or observed. Production deployment, real artifact export, restore rehearsal, rollback rehearsal and all provider/external gates remain deferred; no production state changed. Staging is not part of the delivery model.
 
 ### Fifth remote CI failure — resolved dependency Node API compatibility
 
 - Run [40905489853](https://github.com/jupi-z/jt2j/actions/runs/40905489853) passed PostgreSQL service setup, `pnpm install --frozen-lockfile`, and both `pnpm cms:migrate` invocations.
 - The run then failed in the Vitest workers under the CI pin `node-version: 22.13.0`. The resolved dependency graph contains `undici@8.12.3` through `jsdom@30.1.3`; the lockfile records `undici@8.12.3` with engine `>=22.19.0` and `jsdom@30.1.3` with engines `^22.22.2 || ^24.15.0 || >=26.0.0`. The worker failure therefore occurred after setup and migrations because the Node 22.13 runtime was below the APIs required by the resolved test dependencies.
-- `.github/workflows/ci.yml` now pins CI explicitly to Node `24.15.0`, the smallest compatible Node 24 patch for the resolved `jsdom` engine range and within the package's existing `^24.0.0` engine range. All existing CI gates remain present and production/staging workflows are unchanged.
+- `.github/workflows/ci.yml` now pins CI explicitly to Node `24.15.0`, the smallest compatible Node 24 patch for the resolved `jsdom` engine range and within the package's existing `^24.0.0` engine range. All existing CI gates remain present; the supported production path is independent from the deprecated staging workflow.
 - The release-gate contract test now requires `node-version: 24.15.0` and rejects both old `22.13.0` and `22.12.0` pins.
 
 This section records remote failure evidence supplied by the GitHub Actions run. Local validation of the corrected workflow contract and project gates is reported separately; no GitHub Actions rerun was dispatched from this worktree, and no remote green result is claimed.

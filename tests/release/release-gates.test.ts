@@ -57,15 +57,6 @@ describe('release gate scripts', () => {
       await readFile(
         join(
           dirname(fileURLToPath(import.meta.url)),
-          '../../.github/workflows/deploy-staging.yml',
-        ),
-        'utf8',
-      ),
-    ).toContain('SMOKE_BASE_URL: ${{ secrets.STAGING_BASE_URL }}');
-    expect(
-      await readFile(
-        join(
-          dirname(fileURLToPath(import.meta.url)),
           '../../.github/workflows/deploy-production.yml',
         ),
         'utf8',
@@ -129,10 +120,53 @@ describe('release gate scripts', () => {
     expect(workflow).toContain('ROLLBACK_EXPECTED_TARGET_REVISION="$REVISION"');
   });
 
+  it('keeps production independent from the deprecated staging environment', async () => {
+    const productionWorkflow = await readFile(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../.github/workflows/deploy-production.yml',
+      ),
+      'utf8',
+    );
+    const stagingWorkflow = await readFile(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../.github/workflows/deploy-staging.yml',
+      ),
+      'utf8',
+    );
+    const deploymentDocs = await readFile(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../docs/operations/deployment.md',
+      ),
+      'utf8',
+    );
+
+    expect(productionWorkflow).toContain('workflow_dispatch:');
+    expect(productionWorkflow).toContain('environment: production');
+    expect(productionWorkflow).toContain('Verify provider backup manifest');
+    expect(productionWorkflow).toContain('Verify rollback plan');
+    expect(productionWorkflow).toContain(
+      'Forward-only production migration gate',
+    );
+    expect(productionWorkflow).toContain('Smoke production public surface');
+    expect(productionWorkflow).toContain('manual rollback');
+    expect(productionWorkflow).not.toContain('PRODUCTION_STAGING_EVIDENCE');
+    expect(productionWorkflow).not.toMatch(/staging/i);
+
+    expect(stagingWorkflow).toContain('DEPRECATED');
+    expect(deploymentDocs).toContain(
+      'No staging environment is part of this delivery model',
+    );
+    expect(deploymentDocs).toContain('not a supported release path');
+    expect(deploymentDocs).not.toContain('requires staging evidence');
+  });
+
   it('requires an explicit base URL and covers every public locale route', () => {
     const config = parseSmokeConfig({
-      SMOKE_BASE_URL: 'https://staging.example.test/',
-      SMOKE_CONTACT_TOKEN: 'staging-token',
+      SMOKE_BASE_URL: 'https://isolated.example.test/',
+      SMOKE_CONTACT_TOKEN: 'isolated-token',
     });
     const checks = buildSmokeChecks(config);
 

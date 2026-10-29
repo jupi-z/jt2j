@@ -3,7 +3,8 @@
 ## Handover status
 
 The repository contains the implementation and the launch/handover procedures;
-it does not claim a staging or production deployment. Legal approval, editorial
+it does not claim a production deployment; no staging environment is part of
+this delivery model. Legal approval, editorial
 content approval, business acceptance, real mail delivery, real backup restore,
 and rollback rehearsal remain external gates. Start with:
 

@@ -1,6 +1,6 @@
 # JT2J deployment and release gates
 
-This runbook describes the controlled path from a reviewed revision to staging and, only after staging approval, production. It does not claim that any environment has been deployed from this repository.
+This runbook describes the controlled path from a reviewed revision to protected production. No staging environment is part of this delivery model, and this document does not claim that production has been deployed from this repository.
 
 The companion handover documents define the human responsibilities and
 approval evidence: [handover.md](./handover.md),
@@ -35,17 +35,19 @@ docker compose --profile app up --build
 
 `.github/workflows/ci.yml` runs on pull requests and protected branch pushes, and is reusable by deployment workflows. It installs the lockfile, applies migrations twice to the disposable CI PostgreSQL service (the second run verifies there are no pending migrations), then runs the test suite, typecheck, lint, high-severity audit and production build, and retains build metadata as an artifact. This gate never targets production. CI database and application secrets are GitHub Actions secrets.
 
-## Staging
+## Deprecated staging workflow
 
-The staging workflow is manually dispatched with an approved revision and targets the protected `staging` environment. It runs the reusable CI gate, installs the lockfile, builds locally, connects only with `STAGING_SSH_PRIVATE_KEY` and `STAGING_SSH_KNOWN_HOSTS`, runs `pnpm cms:migrate` before restart, and runs the public smoke verifier against `STAGING_BASE_URL`. The staging contact token is an environment secret and only enables the non-persisting test mode.
-
-No staging deployment or smoke run is considered evidence until the workflow log is available and reviewed.
+`.github/workflows/deploy-staging.yml` is retained as a deprecated legacy
+workflow for traceability only. It is not a supported release path, is not
+required before production, and no staging environment or staging evidence is
+part of this delivery model. Do not configure new staging gates or use its
+secrets as a production prerequisite.
 
 ## Production
 
-The production workflow is manually dispatched with a revision and targets the protected `production` environment. Its preflight gate requires provider-supplied backup-manifest JSON, rollback-plan JSON, staging evidence and `PRODUCTION_ARTIFACT_RUN_ID`. The workflow downloads three files from that GitHub Actions run before invoking the dry-run scripts: `jt2j-production-backup-database-<revision>` must contain `database.dump`, `jt2j-production-backup-media-<revision>` must contain `media.tar`, and `jt2j-production-rollback-<revision>` must contain `previous-release.tar`, each at the artifact root. It rewrites only the manifest paths to those runner-local files; the scripts still verify the declared checksums, freshness and release/revision bindings. A missing run ID, artifact, file or checksum match fails closed. Only after that gate and the environment approval can the deployment job run the controlled migration, restart and public smoke checks.
+The production workflow is manually dispatched with a revision and targets the protected `production` environment. Its preflight gate requires provider-supplied backup-manifest JSON, rollback-plan JSON and `PRODUCTION_ARTIFACT_RUN_ID`. The workflow downloads three files from that GitHub Actions run before invoking the dry-run scripts: `jt2j-production-backup-database-<revision>` must contain `database.dump`, `jt2j-production-backup-media-<revision>` must contain `media.tar`, and `jt2j-production-rollback-<revision>` must contain `previous-release.tar`, each at the artifact root. It rewrites only the manifest paths to those runner-local files; the scripts still verify the declared checksums, freshness and release/revision bindings. A missing run ID, artifact, file or checksum match fails closed. Only after that gate and the environment approval can the deployment job run the controlled migration, restart and public smoke checks.
 
-Production migrations are forward-only through `pnpm cms:migrate`; they are not silently rolled back. A migration failure stops the workflow, and the explicit failure gate records that no automatic rollback occurred. A real restore or rollback requires the provider-specific procedure, the exact snapshot/release identifiers, an incident or release record, and a fresh staging/isolated verification. Destructive production actions remain manual-dispatch and protected-environment steps because provider-specific credentials and procedures are not available in this repository.
+Production migrations are forward-only through `pnpm cms:migrate`; they are not silently rolled back. A migration failure stops the workflow, and the explicit failure gate records that no automatic rollback occurred. A real restore or rollback requires the provider-specific procedure, the exact snapshot/release identifiers, an incident or release record, and a fresh isolated verification. Destructive production actions remain manual-dispatch and protected-environment steps because provider-specific credentials and procedures are not available in this repository.
 
 Before dispatching production, the release owner must have recorded the
 human/legal/editorial/business approvals and the technical evidence listed in
@@ -57,7 +59,7 @@ mail delivery, a restore, or a rollback rehearsal.
 
 ## External gates and non-claims
 
-This repository cannot verify GitHub environment protection, SSH host configuration, provider backup integrity, object-storage rights, DNS/TLS, mail delivery, a real database restore, traffic switching, or a production rollback. Those are explicit external gates. The commit containing this runbook therefore does not claim staging/production deployment, backup creation or restoration, or rollback execution.
+This repository cannot verify GitHub environment protection, SSH host configuration, provider backup integrity, object-storage rights, DNS/TLS, mail delivery, a real database restore, traffic switching, or a production rollback. Those are explicit external gates. The commit containing this runbook therefore does not claim production deployment, backup creation or restoration, or rollback execution.
 
 Secret rotation and incident response are documented in
 [security.md](./security.md) and [incident-response.md](./incident-response.md).
@@ -66,4 +68,4 @@ the repository or release notes.
 
 ## Required GitHub secrets and environment controls
 
-Configure the CI secrets `CI_POSTGRES_PASSWORD`, `CI_PAYLOAD_SECRET` and `CI_CSRF_SECRET`. Configure protected `staging` and `production` environments with their respective SSH key, known-hosts, host, user, app directory, base URL, staging evidence, backup/rollback manifests and `PRODUCTION_ARTIFACT_RUN_ID`. Before a production dispatch, an authorized backup job must upload the three revision-named GitHub Actions artifacts listed above in the same repository and record its numeric run ID; the manifest checksums must be computed from those exact files and its release/revision fields must match the requested revision. No provider-specific storage credential is assumed here. If the provider cannot export the files into such a run, production remains blocked until a provider-specific download/materialization step is supplied and reviewed. Require reviewers on both environments, restrict deployment branches/tags, and keep production contact smoke mode disabled.
+Configure the CI secrets `CI_POSTGRES_PASSWORD`, `CI_PAYLOAD_SECRET` and `CI_CSRF_SECRET`. Configure the protected `production` environment with its SSH key, known-hosts, host, user, app directory, base URL, backup/rollback manifests and `PRODUCTION_ARTIFACT_RUN_ID`. Before a production dispatch, an authorized backup job must upload the three revision-named GitHub Actions artifacts listed above in the same repository and record its numeric run ID; the manifest checksums must be computed from those exact files and its release/revision fields must match the requested revision. No provider-specific storage credential is assumed here. If the provider cannot export the files into such a run, production remains blocked until a provider-specific download/materialization step is supplied and reviewed. Require reviewers on the production environment, restrict deployment branches/tags, and keep production contact smoke mode disabled.

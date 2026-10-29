@@ -4,7 +4,8 @@
 
 This document is the operational handover package for the JT2J website. It
 describes the controls implemented in this repository and the evidence still
-required before a staging or production launch.
+required before a protected production launch. No staging environment is part
+of this delivery model.
 
 The following are **not claimed by this document**: a production deployment,
 legal approval, editorial/content approval, business acceptance, real mail
@@ -103,8 +104,9 @@ In the admin panel, use the following operational flow:
    exception. Do not duplicate the lead manually without checking the
    idempotency key and notification history.
 
-The staging smoke path uses an invalid test address and a non-persisting test
-mode. It is not evidence of real mail delivery or customer receipt.
+The optional non-production smoke path uses an invalid test address and a
+non-persisting test mode. It is not evidence of real mail delivery or customer
+receipt, and it is not a staging release gate.
 
 ## Backup, restore, and rollback
 
@@ -134,18 +136,17 @@ Detailed provider-neutral procedures are in [backups.md](./backups.md) and
 1. Open a pull request with the reviewed revision.
 2. Require the reusable CI workflow to pass: frozen install, migrations twice,
    tests, typecheck, lint, high-severity audit, and build.
-3. Manually dispatch the staging workflow for the exact revision. Review its
-   deployment log and public smoke result; a workflow definition alone is not
-   staging evidence.
-4. Record staging approval, human content/legal approvals, verified backup
-   artifacts, and the rollback plan before requesting production approval.
-5. Manually dispatch production for that exact revision in the protected
-   environment. The workflow fails closed if the required artifact evidence or
-   staging evidence is absent, then runs forward-only migration and public
-   smoke checks.
+3. Record human content/legal approvals, verified backup artifacts, and the
+   rollback plan before requesting production approval. Backup and rollback
+   checks are isolated dry-run verification; they do not restore data or switch
+   traffic.
+4. Manually dispatch production for that exact revision in the protected
+   environment. The workflow fails closed if required artifact evidence is
+   absent, then runs forward-only migration and public smoke checks.
 
 The current repository does not contain provider credentials or evidence that
-these external workflows have been run against real staging or production.
+the external production workflow has been run. The retained staging workflow
+is deprecated and is not part of the delivery model.
 
 ## Secret rotation
 
@@ -187,7 +188,6 @@ The release is not launch-ready until every unchecked external gate in
 | FR/EN copy and claims                | Editorial owner           | Approved content/version IDs             |      | Pending |
 | Brand assets and media rights        | Brand/legal owner         | Rights evidence                          |      | Pending |
 | Contact routing and privacy wording  | Business/privacy owner    | Provider/test-path evidence              |      | Pending |
-| Staging deployment and smoke         | Technical owner           | Workflow run                             |      | Pending |
 | Backup and restore rehearsal         | Operations/provider owner | Snapshot and rehearsal record            |      | Pending |
 | Rollback rehearsal                   | Technical/provider owner  | Release/rollback record                  |      | Pending |
 | Business acceptance                  | JT2J business owner       | Signed acceptance                        |      | Pending |

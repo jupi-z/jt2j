@@ -1,4 +1,6 @@
-name: JT2J staging deployment
+# DEPRECATED: staging is not part of the JT2J delivery model and is not a
+# prerequisite for production. Retained only for legacy operator references.
+name: JT2J deprecated staging deployment
 
 on:
   workflow_dispatch:
