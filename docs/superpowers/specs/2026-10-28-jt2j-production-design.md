@@ -33,7 +33,7 @@ It deliberately does not provide production routing, persistence, authentication
 - Support drafts, preview, approval, publication, version history, and rollback.
 - Store and process contact requests securely.
 - Make all claims, legal information, contact details, references, and media explicitly reviewable before publication.
-- Provide reproducible tests, staging validation, backups, and a rollback path.
+- Provide reproducible CI checks, a direct protected production release, revision-bound backup and rollback evidence, forward-only migrations, post-deploy smoke checks, and a manual rollback path; staging is not a required environment.
 
 ## Non-goals for version 1
 
@@ -75,13 +75,13 @@ This approach keeps the public site, CMS, authentication, and business workflow 
 ## Quality and release requirements
 
 - TypeScript strict mode and locked dependencies.
-- Automated unit, integration, accessibility, and end-to-end tests.
-- Public smoke checks for every production route in both locales.
+- Automated unit, integration, accessibility, and end-to-end tests must pass in CI before release.
+- Post-deploy public smoke checks for every production route in both locales.
 - Keyboard and reduced-motion verification.
-- Database and media backup before production releases.
-- Protected, manually dispatched production deployment without a staging prerequisite.
+- Revision-bound database and media backup plus rollback-artifact evidence before production releases.
+- Direct protected production deployment; staging is not a required environment.
 - Revision-bound backup and rollback-artifact verification before production deployment.
-- A documented rollback procedure tested before launch.
+- Forward-only migrations and a documented manual rollback procedure tested before launch.
 
 ## Open decisions to confirm before implementation
 
