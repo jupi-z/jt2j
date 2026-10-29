@@ -1,0 +1,151 @@
+# Task 11 report — production release gates without staging
+
+Date: 2026-10-29
+Worktree: `feat/jt2j-production`
+
+## Delivery-model decision update — 2026-10-29
+
+This delivery model does not include a staging environment. Production remains
+a manually dispatched, protected-environment workflow with CI, revision-bound
+backup and rollback-artifact materialization, isolated dry-run verification,
+forward-only migration, required post-deploy public smoke, and a documented
+manual/provider-specific rollback decision. `deploy-staging.yml` is retained
+only as a clearly deprecated legacy workflow for traceability; it is not a
+release prerequisite. No production deployment or staging deployment was
+performed by this worktree.
+
+## Delivered
+
+- `scripts/smoke-public.ts` checks health, all catalogued public routes in `/fr` and `/en`, robots, sitemap and an opt-in non-persisting contact test request.
+- `scripts/backup-check.ts` validates a provider manifest for database/media objects, checksums, release and verification timestamp. It is explicitly dry-run only.
+- `scripts/rollback-check.ts` validates a previous/target release plan, health path, smoke command and migration policy. It is explicitly dry-run only.
+- `Dockerfile` builds the Next standalone runtime; `docker-compose.yml` provides PostgreSQL and an optional app profile using required environment substitutions.
+- `.github/workflows/ci.yml` runs locked install, tests, typecheck, lint, high-severity audit, build and artifact retention.
+- CI PostgreSQL uses a disposable non-production password for the service and job database URL; production secrets remain unchanged.
+- `.github/workflows/deploy-staging.yml` is retained as a deprecated legacy workflow and is not part of the supported release path.
+- `.github/workflows/deploy-production.yml` requires CI, protected production approval, dry-run backup/rollback evidence before controlled migration, restart and smoke gates; no staging evidence gate remains.
+- `docs/operations/deployment.md` documents local usage, secret/environment requirements, migration policy and external reservations.
+
+## Local evidence
+
+| Gate                                                                                      | Result                                                    |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `pnpm exec vitest run tests/release/release-gates.test.ts tests/leads/lead-route.test.ts` | PASS, 2 files / 27 tests                                  |
+| `pnpm test`                                                                               | PASS, 20 files / 179 tests                                |
+| `pnpm typecheck`                                                                          | PASS                                                      |
+| `pnpm lint`                                                                               | PASS, zero warnings/errors                                |
+| `pnpm audit --audit-level=high`                                                           | PASS at high threshold; 1 low transitive advisory remains |
+| `pnpm build`                                                                              | PASS; Next standalone output generated                    |
+| `pnpm smoke:public` against local standalone server                                       | PASS, 41 checks without contact mode                      |
+| `pnpm smoke:public` with local opt-in contact mode                                        | PASS, 42 checks including contact test mode               |
+| `pnpm backup:check` with temporary verified manifest                                      | PASS, `dryRun=true`                                       |
+| `pnpm rollback:check` with temporary plan                                                 | PASS, `dryRun=true`                                       |
+| `docker compose config --quiet` with local-only environment values                        | PASS                                                      |
+
+The three scripts also fail closed without their required configuration: missing `SMOKE_BASE_URL`, `BACKUP_MANIFEST` or `ROLLBACK_PLAN` each produced exit code 1.
+
+Compose also fails closed when required environment variables are absent; no fallback credential is embedded in the file.
+
+## Not executed / blocked by external environment
+
+- No GitHub Actions run was dispatched or observed from this worktree.
+- No production deployment was performed; no staging environment is part of this delivery model.
+- No GitHub environment protection, SSH host/key configuration, DNS/TLS, object storage, mail provider, provider backup, restore rehearsal, traffic switch or production rollback was verified.
+- No real backup was created, restored or deleted; no real rollback was exercised.
+- The remaining low audit advisory was not changed because no safe upstream resolution was available in this task.
+
+The workflow files are release gates and deployment instructions, not evidence that the external gates have passed.
+
+### Fourth remote CI failure — CMS migration test secrets
+
+- Run [40868025063](https://github.com/jupi-z/jt2j/actions/runs/40868025063) passed PostgreSQL service initialization, Node `22.13.0` setup and `pnpm install`.
+- The next `pnpm cms:migrate` step failed because `PAYLOAD_SECRET` and `CSRF_SECRET` were empty in the CI job. `src/payload/config.ts` requires `PAYLOAD_SECRET` to be at least 32 characters, so the migration gate stopped before the remaining tests and checks.
+- `.github/workflows/ci.yml` now provides the disposable, non-production literals `jt2j-ci-disposable-payload-secret-32-characters` and `jt2j-ci-disposable-csrf-secret-32-characters` directly in the CI job environment. They are distinct and each exceeds the 32-character minimum.
+- The focused release-gate contract test asserts the two CI values are direct, distinct and sufficiently long, and confirms the production smoke URL still references `PRODUCTION_BASE_URL`; the legacy staging workflow is not a production prerequisite.
+- No remote rerun was dispatched from this worktree; remote verification remains external.
+
+## Remote CI failure and correction
+
+- Run [40864256471](https://github.com/jupi-z/jt2j/actions/runs/40864256471) failed at `quality / Initialize containers` before checkout because the PostgreSQL service received an empty `POSTGRES_PASSWORD` from the unset `CI_POSTGRES_PASSWORD` secret.
+- `.github/workflows/ci.yml` now supplies the literal disposable password `jt2j-ci-disposable-password` to the PostgreSQL service and matching `DATABASE_URL`; `CI_PAYLOAD_SECRET` and `CI_CSRF_SECRET` remain secret-backed, and no production secret is changed.
+- A focused release-gate contract test covers the disposable password and rejects the former PostgreSQL secret reference. A remote rerun remains external and was not dispatched here.
+
+### Second remote CI failure — Node/pnpm compatibility
+
+- Run [40865156367](https://github.com/jupi-z/jt2j/actions/runs/40865156367) for commit `24e6ac3a867a756af9cdebc904407ec394daf1f0` failed on 2026-10-29 at `quality / Run actions/setup-node@v4` ([job 123417936430](https://github.com/jupi-z/jt2j/actions/runs/40865156367/job/123417936430)).
+- The run reached and passed `Initialize containers`, `actions/checkout@v4` and `pnpm/action-setup@v4`; `actions/setup-node@v4` resolved `node-version: 22.12.0` and reported `node: v22.12.0`.
+- The exact setup-node failure was: `ERROR: This version of pnpm requires at least Node.js v22.13`; `The current version of Node.js is v22.12.0`. Install, migrations, tests, typecheck, lint, audit and build were skipped.
+- `.github/workflows/ci.yml` now pins `node-version: 22.13.0`, an explicit Node 22 patch within the package engine range `^22.12.0 || ^24.0.0` and compatible with pnpm `11.25.0`. No application code, deployment workflow or CI gate was weakened.
+- The focused release-gate contract test now asserts the `22.13.0` pin and rejects `22.12.0`. Remote verification remains external; no run was dispatched here.
+
+## Fix round 1/5 — review findings
+
+Base: `c1c38c1`
+
+### Changes
+
+- `scripts/backup-check.ts` now requires real database/media file artifacts, recomputes SHA-256 checksums, rejects missing/empty or stale evidence, and binds each artifact to the manifest release/revision. The CLI also requires `BACKUP_EXPECTED_REVISION`; a JSON `verified` flag is not used.
+- `scripts/rollback-check.ts` now requires a real previous-release artifact, recomputes its SHA-256 checksum, rejects missing/empty or stale evidence, and binds the artifact and target to the declared revisions. The CLI requires `ROLLBACK_EXPECTED_TARGET_REVISION`.
+- `scripts/smoke-public.ts` now accepts the contact smoke request only for HTTP `202` with JSON `{ accepted: true, testMode: true }`.
+- CI applies migrations twice against its disposable PostgreSQL service, providing an idempotent migration verification gate without targeting production.
+- `docker-compose.yml` builds the app database URL with the `postgres` service hostname.
+- The production workflow names forward-only migration and post-deploy smoke gates explicitly, and records failure as requiring a manual/provider-specific rollback decision. No automatic rollback is claimed or performed; the staging workflow remains deprecated.
+- `docs/operations/deployment.md` documents the artifact schema, freshness/integrity checks, disposable CI migration gate, and the remaining provider-specific manual gates.
+
+### Fix-round commands and outputs
+
+| Command                                                    | Result                                                                                                 |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `pnpm exec vitest run tests/release/release-gates.test.ts` | PASS — 1 file / 4 tests                                                                                |
+| `pnpm test`                                                | PASS — 20 files / 176 tests; Payload emitted existing no-email-adapter warnings                        |
+| `pnpm lint`                                                | PASS — zero errors/warnings                                                                            |
+| `pnpm typecheck`                                           | PASS — Next route type generation and `tsc --noEmit`                                                   |
+| `pnpm build`                                               | PASS — Next production build, 45 static pages generated                                                |
+| `pnpm exec prettier --check <changed files>`               | PASS — all changed files formatted                                                                     |
+| `git diff --check`                                         | PASS                                                                                                   |
+| `docker compose config --quiet` with local-only values     | PASS                                                                                                   |
+| `actionlint`                                               | DEFERRED — executable unavailable in this environment (`actionlint unavailable: executable not found`) |
+
+No GitHub Actions run, production deployment, backup creation/restore, or rollback was executed. These remain external/manual gates and no production state was changed; staging is not part of the delivery model.
+
+## Fix round 2/5 — end-to-end artifact materialization
+
+Finding addressed: the production preflight previously received only manifest/plan JSON, while the referenced files were absent from the clean GitHub runner. It now requires `PRODUCTION_ARTIFACT_RUN_ID`, downloads three revision-named artifacts from that GitHub Actions run, requires the exact non-empty files `database.dump`, `media.tar` and `previous-release.tar`, rewrites only the manifest paths to those local files, and then runs the existing checksum/freshness/release/revision checks. Missing inputs, download failures or missing files fail closed. No provider credential or production action was added.
+
+Manual prerequisite: an authorized backup job must upload `jt2j-production-backup-database-<revision>`, `jt2j-production-backup-media-<revision>` and `jt2j-production-rollback-<revision>` in the same repository, with the exact file names documented in `docs/operations/deployment.md`; the operator must store that run's numeric ID as `PRODUCTION_ARTIFACT_RUN_ID` and provide manifests whose checksums and release/revision bindings describe those exact files. If the provider cannot export artifacts into such a run, the production workflow remains blocked pending a reviewed provider-specific materialization step.
+
+### Commands and output
+
+| Command                                                                                                                                | Result                                                                       |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `pnpm exec vitest run tests/release/release-gates.test.ts`                                                                             | PASS — 1 file / 5 tests; includes the workflow materialization contract      |
+| `pnpm test`                                                                                                                            | PASS — 20 files / 177 tests; existing Payload no-email-adapter warnings only |
+| `pnpm typecheck`                                                                                                                       | PASS — route types generated and `tsc --noEmit` completed with code 0        |
+| `pnpm lint`                                                                                                                            | PASS — zero errors/warnings                                                  |
+| `pnpm build`                                                                                                                           | PASS — Next production build; 45 static pages generated                      |
+| `pnpm exec prettier --check .github/workflows/deploy-production.yml docs/operations/deployment.md tests/release/release-gates.test.ts` | PASS — all changed files formatted                                           |
+| `git diff --check`                                                                                                                     | PASS                                                                         |
+
+No GitHub Actions run was dispatched or observed. Production deployment, real artifact export, restore rehearsal, rollback rehearsal and all provider/external gates remain deferred; no production state changed. Staging is not part of the delivery model.
+
+### Fifth remote CI failure — resolved dependency Node API compatibility
+
+- Run [40905489853](https://github.com/jupi-z/jt2j/actions/runs/40905489853) passed PostgreSQL service setup, `pnpm install --frozen-lockfile`, and both `pnpm cms:migrate` invocations.
+- The run then failed in the Vitest workers under the CI pin `node-version: 22.13.0`. The resolved dependency graph contains `undici@8.12.3` through `jsdom@30.1.3`; the lockfile records `undici@8.12.3` with engine `>=22.19.0` and `jsdom@30.1.3` with engines `^22.22.2 || ^24.15.0 || >=26.0.0`. The worker failure therefore occurred after setup and migrations because the Node 22.13 runtime was below the APIs required by the resolved test dependencies.
+- `.github/workflows/ci.yml` now pins CI explicitly to Node `24.15.0`, the smallest compatible Node 24 patch for the resolved `jsdom` engine range and within the package's existing `^24.0.0` engine range. All existing CI gates remain present; the supported production path is independent from the deprecated staging workflow.
+- The release-gate contract test now requires `node-version: 24.15.0` and rejects both old `22.13.0` and `22.12.0` pins.
+
+This section records remote failure evidence supplied by the GitHub Actions run. Local validation of the corrected workflow contract and project gates is reported separately; no GitHub Actions rerun was dispatched from this worktree, and no remote green result is claimed.
+
+### Local validation for the Node pin correction
+
+- Local runtime: `node --version` → `v24.21.0`; `pnpm --version` → `11.25.0`.
+- `pnpm exec vitest run tests/release/release-gates.test.ts` → PASS, 1 file / 9 tests, including the new `24.15.0` contract and rejection of both old pins.
+- `pnpm test` → PASS, 20 files / 181 tests; existing Payload no-email-adapter warnings only.
+- `pnpm typecheck` → PASS.
+- `pnpm lint` → PASS, zero errors/warnings.
+- `pnpm audit --audit-level=high` → PASS at the high threshold; 1 low transitive advisory remains.
+- `pnpm build` → PASS; 45 static pages generated.
+- `git diff --check` → PASS.
+
+These are local checks only. They do not replace a fresh GitHub Actions run on the committed revision.

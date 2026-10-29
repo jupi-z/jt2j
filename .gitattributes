@@ -1,0 +1,2 @@
+# Generated seed snapshots must retain deterministic bytes on Windows checkouts.
+/src/content/seed/*.ts text eol=lf

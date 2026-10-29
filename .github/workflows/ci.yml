@@ -1,0 +1,66 @@
+name: JT2J CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, feat/jt2j-production]
+  workflow_call:
+    inputs:
+      revision:
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: jt2j_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: jt2j-ci-disposable-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U postgres -d jt2j_test"
+          --health-interval=5s --health-timeout=5s --health-retries=12
+    env:
+      DATABASE_URL: postgresql://postgres:jt2j-ci-disposable-password@localhost:5432/jt2j_test
+      PAYLOAD_SECRET: jt2j-ci-disposable-payload-secret-32-characters
+      CSRF_SECRET: jt2j-ci-disposable-csrf-secret-32-characters
+      SITE_URL: http://localhost:3000
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply and verify migrations on disposable CI database
+        run: |
+          pnpm cms:migrate
+          pnpm cms:migrate
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm audit --audit-level=high
+      - run: pnpm build
+      - name: Upload build metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jt2j-ci-metadata-${{ github.sha }}
+          path: |
+            .next/BUILD_ID
+            pnpm-lock.yaml
+          if-no-files-found: warn
+          retention-days: 14

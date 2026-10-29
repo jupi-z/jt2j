@@ -1,0 +1,43 @@
+{
+  "pages": {
+    "HOME": "Home",
+    "COMPANY": "Company",
+    "EXPERTISE": "Divisions",
+    "SERVICES": "Services",
+    "APPROACH": "Approach",
+    "FAQ": "Frequently asked questions",
+    "CONTACT": "Contact"
+  },
+  "divisions": {
+    "SEC": "Security and biometrics",
+    "LOG": "Logistics and tracking",
+    "HYG": "Hygiene and pest control",
+    "BIZ": "Business and marketing",
+    "TRV": "Travel and escapes"
+  },
+  "services": {
+    "pest-control": "Pest control",
+    "cleaning": "Cleaning",
+    "travel-tourism": "Travel and tourism",
+    "disinfection-sanitation": "Disinfection and sanitation",
+    "facility-management": "Facility management",
+    "transport-logistics": "Transport and logistics",
+    "trading-supply": "Trading and supply"
+  },
+  "description": "{title} — JT2J. This page is being prepared.",
+  "placeholder": "This page is being prepared.",
+  "navigation": "Main navigation",
+  "languageLabel": "Choose language",
+  "languages": {
+    "fr": "French",
+    "en": "English"
+  },
+  "openMenu": "Open menu",
+  "closeMenu": "Close menu",
+  "skip": "Skip to content",
+  "browseDivisions": "Explore divisions",
+  "notFound": {
+    "title": "Page not found",
+    "home": "Return home"
+  }
+}

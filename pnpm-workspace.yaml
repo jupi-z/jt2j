@@ -1,0 +1,19 @@
+allowBuilds:
+  '@embedded-postgres/windows-x64': true
+  '@embedded-postgres/linux-x64': true
+  '@parcel/watcher': false
+  '@swc/core': false
+  esbuild: true
+  unrs-resolver: true
+overrides:
+  dompurify: '>=3.4.17'
+  esbuild: '>=0.25.0'
+  graphql-scalars: '>=2.0.1'
+minimumReleaseAgeExclude:
+  - '@payloadcms/db-postgres@3.92.1'
+  - '@payloadcms/drizzle@3.92.1'
+  - '@payloadcms/plugin-cloud-storage@3.92.1'
+  - '@payloadcms/storage-s3@3.92.1'
+  - '@payloadcms/translations@3.92.1'
+  - '@payloadcms/ui@3.92.1'
+  - payload@3.92.1

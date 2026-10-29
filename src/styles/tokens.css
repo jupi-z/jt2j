@@ -1,0 +1,48 @@
+/* Visual values carried from docs/reference/JT2J_Prestige_Prototype.html. */
+:root {
+  --navy: #081b2b;
+  --navy2: #102c3d;
+  --gold: #ccad72;
+  --gold-dark: #806228;
+  --cream: #f5f3ec;
+  --white: #fff;
+  --ink: #112734;
+  --muted: #58666b;
+  --line: #d9dedb;
+  --page: 1320px;
+  --gutter: 48px;
+  --section-space: 104px;
+  --header-height: 88px;
+  --font-body: Arial, Helvetica, sans-serif;
+  --font-display: Georgia, 'Times New Roman', serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --focus-color: var(--gold-dark);
+  --motion-duration: 250ms;
+}
+@media (min-width: 1600px) {
+  :root {
+    --page: 1440px;
+  }
+}
+@media (max-width: 1190px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (max-width: 900px) {
+  :root {
+    --section-space: 76px;
+  }
+}
+@media (max-width: 640px) {
+  :root {
+    --gutter: 23px;
+    --section-space: 62px;
+    --header-height: 76px;
+  }
+}
+@media (max-width: 359px) {
+  :root {
+    --gutter: 18px;
+  }
+}

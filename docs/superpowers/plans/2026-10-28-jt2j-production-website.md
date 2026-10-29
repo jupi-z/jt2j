@@ -19,7 +19,7 @@
 - Contact requests must be validated server-side, rate-limited, persisted only according to the approved data policy, and sent through a transactional provider.
 - No production secrets, tokens, credentials, or private customer data may be committed.
 - Every implementation task ends with a focused test run and a small commit.
-- No production deployment occurs before staging approval, backup verification, and rollback verification.
+- No supported release path requires a staging environment; production remains protected and requires backup and rollback verification.
 
 ## Review Focus
 
@@ -220,7 +220,7 @@
 - [ ] **Step 5:** Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm e2e`, `pnpm build`, and dependency audit.
 - [ ] **Step 6: Commit** `test: complete jt2j release verification suite`.
 
-### Task 11: Staging deployment and release gates
+### Task 11: Production release gates without staging
 
 **Files:**
 - Create: `Dockerfile`, `docker-compose.yml` for local services if needed, deployment configuration, and CI workflow files.
@@ -229,14 +229,14 @@
 - Create: `docs/operations/deployment.md`.
 
 **Interfaces:**
-- Produces CI gates, staging deployment, public route smoke checks, database/media backup checks, and a documented rollback command/process.
+- Produces CI gates, a deprecated legacy staging workflow for traceability, public route smoke checks, database/media backup checks, and a documented rollback command/process.
 
 - [ ] **Step 1: Write failing CI/smoke scripts** for build, migrations, health, all locale routes, robots, sitemap, and contact test mode.
 - [ ] **Step 2: Run them locally** and confirm they fail without deployment configuration.
 - [ ] **Step 3:** Configure CI with locked dependencies, test database, build, test, and artifact retention.
-- [ ] **Step 4:** Deploy staging and run smoke checks against the deployed URL.
+- [ ] **Step 4:** Keep any legacy staging workflow clearly deprecated; verify the production release path with isolated backup/rollback artifacts and public smoke checks.
 - [ ] **Step 5:** Execute a restore rehearsal and rollback rehearsal; capture exact evidence.
-- [ ] **Step 6: Commit** `ci: add jt2j staging and release gates`.
+- [ ] **Step 6: Commit** `ci: add jt2j release gates without staging`.
 
 ### Task 12: Production launch and handoff
 
@@ -245,7 +245,7 @@
 - Create: `docs/operations/handover.md`, `docs/content/editorial-guide.md`, `docs/content/content-approval-matrix.md`.
 
 - [ ] **Step 1: Collect final approvals** for legal identity, contact routing, translations, brand assets, media rights, and publication claims.
-- [ ] **Step 2: Run final production gates**: clean CI, staging smoke green, backup verified, rollback verified, admin roles verified, and human business acceptance recorded separately from technical checks.
+- [ ] **Step 2: Run final production gates**: clean CI, backup verified, rollback verified in isolation, admin roles verified, and human business acceptance recorded separately from technical checks.
 - [ ] **Step 3:** Deploy production using the approved release procedure.
 - [ ] **Step 4:** Run public smoke checks in FR and EN, submit a non-sensitive test lead through the mail sink or approved test path, and verify admin receipt/status handling.
 - [ ] **Step 5:** Monitor the first release window and record any follow-up work without calling the release complete until all gates are evidenced.

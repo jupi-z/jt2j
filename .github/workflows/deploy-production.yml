@@ -1,0 +1,142 @@
+name: JT2J production deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Approved Git revision to deploy
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: jt2j-production
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    uses: ./.github/workflows/ci.yml
+    with:
+      revision: ${{ inputs.revision }}
+    secrets: inherit
+
+  preflight:
+    needs: quality
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Materialize revision-bound backup and rollback artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_RUN_ID: ${{ secrets.PRODUCTION_ARTIFACT_RUN_ID }}
+          REVISION: ${{ inputs.revision }}
+          BACKUP_MANIFEST_JSON: ${{ secrets.PRODUCTION_BACKUP_MANIFEST_JSON }}
+          ROLLBACK_PLAN_JSON: ${{ secrets.PRODUCTION_ROLLBACK_PLAN_JSON }}
+        run: |
+          set -euo pipefail
+          test -n "$ARTIFACT_RUN_ID" || { echo '::error::PRODUCTION_ARTIFACT_RUN_ID is required; no backup/rollback artifact source was provided.'; exit 1; }
+          case "$ARTIFACT_RUN_ID" in
+            (*[!0-9]*) echo '::error::PRODUCTION_ARTIFACT_RUN_ID must be a numeric GitHub Actions run id.'; exit 1;;
+          esac
+          test -n "$BACKUP_MANIFEST_JSON" || { echo '::error::PRODUCTION_BACKUP_MANIFEST_JSON is required.'; exit 1; }
+          test -n "$ROLLBACK_PLAN_JSON" || { echo '::error::PRODUCTION_ROLLBACK_PLAN_JSON is required.'; exit 1; }
+
+          artifact_root="$RUNNER_TEMP/jt2j-artifacts"
+          database_dir="$artifact_root/database"
+          media_dir="$artifact_root/media"
+          rollback_dir="$artifact_root/rollback"
+          mkdir -p "$database_dir" "$media_dir" "$rollback_dir"
+          gh run download "$ARTIFACT_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "jt2j-production-backup-database-${REVISION}" --dir "$database_dir"
+          gh run download "$ARTIFACT_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "jt2j-production-backup-media-${REVISION}" --dir "$media_dir"
+          gh run download "$ARTIFACT_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "jt2j-production-rollback-${REVISION}" --dir "$rollback_dir"
+
+          database_path="$database_dir/database.dump"
+          media_path="$media_dir/media.tar"
+          rollback_path="$rollback_dir/previous-release.tar"
+          for artifact_path in "$database_path" "$media_path" "$rollback_path"; do
+            test -s "$artifact_path" || { echo "::error::Expected non-empty downloaded artifact is missing: $artifact_path"; exit 1; }
+          done
+
+          printf '%s' "$BACKUP_MANIFEST_JSON" | jq --arg database_path "$database_path" --arg media_path "$media_path" '.database.path=$database_path | .media.path=$media_path' > "$RUNNER_TEMP/jtj2-backup.json"
+          printf '%s' "$ROLLBACK_PLAN_JSON" | jq --arg rollback_path "$rollback_path" '.artifact.path=$rollback_path' > "$RUNNER_TEMP/jtj2-rollback.json"
+      - name: Verify provider backup manifest (dry-run only)
+        env:
+          REVISION: ${{ inputs.revision }}
+        run: |
+          BACKUP_MANIFEST="$RUNNER_TEMP/jtj2-backup.json" BACKUP_EXPECTED_REVISION="$REVISION" pnpm backup:check
+      - name: Verify rollback plan (dry-run only)
+        env:
+          REVISION: ${{ inputs.revision }}
+        run: |
+          ROLLBACK_PLAN="$RUNNER_TEMP/jtj2-rollback.json" ROLLBACK_EXPECTED_TARGET_REVISION="$REVISION" pnpm rollback:check
+  deploy:
+    needs: preflight
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+      - name: Trust deployment host
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Forward-only production migration gate (failure stops; no automatic rollback)
+        if: ${{ success() }}
+        env:
+          HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+          USER: ${{ secrets.PRODUCTION_SSH_USER }}
+          APP_DIR: ${{ secrets.PRODUCTION_APP_DIR }}
+          REVISION: ${{ inputs.revision }}
+        run: |
+          app_dir_b64="$(printf '%s' "$APP_DIR" | base64 -w0)"
+          revision_b64="$(printf '%s' "$REVISION" | base64 -w0)"
+          ssh "$USER@$HOST" "bash -s -- '$app_dir_b64' '$revision_b64'" <<'REMOTE'
+          set -eu
+          APP_DIR="$(printf '%s' "$1" | base64 -d)"
+          REVISION="$(printf '%s' "$2" | base64 -d)"
+          cd -- "$APP_DIR"
+          git fetch --tags origin -- "$REVISION"
+          git checkout --detach -- "$REVISION"
+          pnpm install --frozen-lockfile
+          pnpm cms:migrate
+          pnpm build
+          systemctl restart jt2j-production
+          REMOTE
+      - name: Smoke production public surface (required post-deploy gate)
+        if: ${{ success() }}
+        env:
+          SMOKE_BASE_URL: ${{ secrets.PRODUCTION_BASE_URL }}
+        run: pnpm smoke:public
+      - name: Record deployment failure and require manual rollback decision
+        if: ${{ failure() }}
+        run: |
+          echo '::error::Production deployment failed. No automatic rollback was performed; use the provider-specific manual rollback procedure after incident approval.'
+          exit 1
