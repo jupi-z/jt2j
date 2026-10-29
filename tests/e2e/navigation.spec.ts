@@ -40,18 +40,33 @@ test.describe('public navigation', () => {
 
   for (const locale of locales) {
     test(`${locale} service search and division filter update the result status`, async ({ page, openPublic }) => {
-    await openPublic(locale, '/services');
-    const search = page.getByRole('searchbox', { name: /rechercher un service|search services/i });
-    await search.fill('nettoyage');
-    await expect(page.getByRole('status')).toContainText(/service trouvé|services found/i);
-    await expect(page.getByRole('link', { name: /nettoyage|cleaning/i }).first()).toBeVisible();
-    const division = page.getByLabel(/pôle|division/i);
-    await division.selectOption('travel-escapes');
-    await expect(page.getByRole('status')).toContainText(/service trouvé|services found/i);
-    await expect(page.getByRole('link', { name: /voyages|travel/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /nettoyage|cleaning/i })).toHaveCount(0);
-    await search.fill('terme-inexistant');
-    await expect(page.getByRole('status')).toContainText(/aucun service trouvé|no service found/i);
+      await openPublic(locale, '/services');
+      const search = page.getByRole('searchbox', {
+        name: locale === 'fr' ? 'Rechercher un service' : 'Search services',
+      });
+      const serviceTerm = locale === 'fr' ? 'nettoyage' : 'cleaning';
+      const serviceLink = locale === 'fr' ? /nettoyage/i : /cleaning/i;
+      const travelLink = locale === 'fr' ? /voyage/i : /travel/i;
+      const foundStatus = locale === 'fr' ? /1 services trouvés/i : /1 services found/i;
+      const emptyStatus = locale === 'fr' ? /aucun service trouvé/i : /no service found/i;
+
+      await search.fill(serviceTerm);
+      await expect(page.getByRole('status')).toHaveText(foundStatus);
+      await expect(page.getByRole('link', { name: serviceLink }).first()).toBeVisible();
+
+      await search.fill('');
+      await expect(page.getByRole('status')).toHaveText(
+        locale === 'fr' ? /7 services trouvés/i : /7 services found/i,
+      );
+      const division = page.getByRole('search').getByRole('combobox');
+      await division.selectOption('travel-escapes');
+      await expect(page.getByRole('status')).toHaveText(foundStatus);
+      await expect(page.getByRole('link', { name: travelLink }).first()).toBeVisible();
+      await expect(page.getByRole('link', { name: serviceLink })).toHaveCount(0);
+
+      await search.fill(locale === 'fr' ? 'terme inexistant' : 'no such service');
+      await expect(page.getByRole('status')).toHaveText(emptyStatus);
+      await expect(page.locator('[data-service-card]')).toHaveCount(0);
     });
   }
 

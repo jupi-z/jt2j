@@ -66,3 +66,30 @@ Commit: follow-up QA fix commit `fix: complete jt2j task 10 QA review` (hash ret
 - Full `pnpm e2e` was not completed after the final launcher change; mobile Chromium and reduced-motion full-matrix results remain unverified in this fix round.
 - `pnpm test`, `pnpm build`, and dependency audit were not rerun after the final fix because the user requested immediate finalization. The previous report's evidence/reservations remain in force: unit tests had passed at 19 files/171 tests, the build had been interrupted without an exit status, and audit had not been run.
 - No test was skipped for WebKit or another unavailable external dependency. No deployment, public smoke, backup/restore rehearsal, rollback rehearsal, legal/editorial approval, or business acceptance was performed.
+
+## Fix round 2 — scoped review findings
+
+Date: 2026-10-29
+
+### Implemented
+
+- Replaced the Windows-incompatible `spawn('pnpm.cmd', ...)` launcher with a portable direct Next CLI launch through `process.execPath`, `process.platform`, and explicit `shell: false`. The fixture environment remains set only by this launcher.
+- Replaced the partial browser fixture catalog with the canonical bilingual seed projection: all 5 divisions, all 7 services, all published/approved, with approved legal evidence and complete SEO/copy fields. The public query publication guards remain active.
+- Updated navigation tests to use locale-specific search terms and labels, clear search before division filtering, and assert exact visible result counts/cards.
+- Updated FR and EN contact server-error tests to assert the exact localized alert text.
+
+### Exact verification evidence observed
+
+- Reproduction before the fix: `JT2J_E2E_FIXTURES=1 pnpm exec playwright test tests/e2e/navigation.spec.ts tests/e2e/contact.spec.ts --project=desktop-chromium` failed before the browser run with `Error: spawn EINVAL` at `scripts/e2e-server.mjs:4:15`.
+- `pnpm typecheck`: passed; `next typegen` reported `Types generated successfully` and `tsc --noEmit` completed successfully.
+- Post-fix targeted command: `JT2J_E2E_FIXTURES=1 pnpm exec playwright test tests/e2e/navigation.spec.ts tests/e2e/contact.spec.ts --project=desktop-chromium` — **50 passed (2.8m)**, exit code 0.
+- Full command `JT2J_E2E_FIXTURES=1 pnpm e2e` was started, reached the Playwright web server startup, and was then intentionally interrupted by the user before completion. It has no final test count or exit status and is not claimed as passing; the lingering Node process was stopped.
+
+### Remaining reservations
+
+- Because the user requested immediate finalization after stopping the long E2E run, `pnpm lint`, `pnpm test`, `pnpm build`, dependency audit, and the complete mobile/reduced-motion E2E matrix were not rerun in this round. The targeted desktop Chromium evidence above is fresh; no status is inferred for the skipped gates.
+- No deployment, public smoke, backup/restore rehearsal, rollback rehearsal, legal/editorial approval, or business acceptance was performed.
+
+## Commit
+
+Round 2 commit: `fix: complete jt2j task 10 QA review round 2`.

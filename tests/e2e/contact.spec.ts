@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('contact form exposes approved fields and a safe confirmation flow', async ({ page }) => {
   await page.goto('/fr/contact');
 
-  await expect(page.getByRole('heading', { name: /contact/i }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.getByLabel(/nom/i)).toBeVisible();
   await expect(page.getByLabel(/e-mail/i)).toBeVisible();
   await expect(page.getByLabel(/message/i)).toBeVisible();
@@ -15,7 +15,7 @@ test('contact form exposes approved fields and a safe confirmation flow', async 
 });
 
 for (const locale of ['fr', 'en'] as const) {
-test(`${locale} contact form shows a visible error and re-enables submit after a server failure`, async ({ page }) => {
+test(`${locale} contact form shows localized error and re-enables submit after a server failure`, async ({ page }) => {
   await page.route('**/api/leads', (route) => route.fulfill({
     status: 503,
     contentType: 'application/json',
@@ -30,7 +30,11 @@ test(`${locale} contact form shows a visible error and re-enables submit after a
   const submit = page.getByRole('button', { name: /envoyer|send/i });
   await submit.click();
 
-  await expect(page.locator('p[role="alert"]')).toBeVisible();
+  await expect(page.locator('p[role="alert"]')).toHaveText(
+    locale === 'fr'
+      ? "Votre demande n'a pas pu être envoyée. Veuillez réessayer plus tard."
+      : 'Your request could not be sent. Please try again later.',
+  );
   await expect(submit).toBeEnabled();
 });
 }
