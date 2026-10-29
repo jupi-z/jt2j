@@ -47,6 +47,26 @@ describe('release gate scripts', () => {
     expect(workflow).not.toContain('node-version: 22.12.0');
   });
 
+  it('allows only the platform-specific embedded-postgres builds required by CI and local Windows', async () => {
+    const workspace = await readFile(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../pnpm-workspace.yaml',
+      ),
+      'utf8',
+    );
+    const embeddedPostgresBuilds = workspace
+      .split('\n')
+      .filter((line) => line.includes("'@embedded-postgres/"));
+
+    expect(embeddedPostgresBuilds).toEqual([
+      "  '@embedded-postgres/windows-x64': true",
+      "  '@embedded-postgres/linux-x64': true",
+    ]);
+    expect(workspace).toContain("  '@parcel/watcher': false");
+    expect(workspace).toContain("  '@swc/core': false");
+  });
+
   it('materializes revision-bound production artifacts before local checks', async () => {
     const workflow = await readFile(
       join(
