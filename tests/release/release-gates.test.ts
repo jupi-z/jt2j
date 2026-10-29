@@ -16,6 +16,24 @@ import {
 import { verifyContactSmokeResponse } from '../../scripts/smoke-public';
 
 describe('release gate scripts', () => {
+  it('uses a disposable password for the CI PostgreSQL service', async () => {
+    const workflow = await readFile(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../.github/workflows/ci.yml',
+      ),
+      'utf8',
+    );
+
+    expect(workflow).toContain(
+      'POSTGRES_PASSWORD: jt2j-ci-disposable-password',
+    );
+    expect(workflow).toContain(
+      'DATABASE_URL: postgresql://postgres:jt2j-ci-disposable-password@localhost:5432/jt2j_test',
+    );
+    expect(workflow).not.toContain('secrets.CI_POSTGRES_PASSWORD');
+  });
+
   it('materializes revision-bound production artifacts before local checks', async () => {
     const workflow = await readFile(
       join(

@@ -10,6 +10,7 @@ Worktree: `feat/jt2j-production`
 - `scripts/rollback-check.ts` validates a previous/target release plan, health path, smoke command and migration policy. It is explicitly dry-run only.
 - `Dockerfile` builds the Next standalone runtime; `docker-compose.yml` provides PostgreSQL and an optional app profile using required environment substitutions.
 - `.github/workflows/ci.yml` runs locked install, tests, typecheck, lint, high-severity audit, build and artifact retention.
+- CI PostgreSQL uses a disposable non-production password for the service and job database URL; production secrets remain unchanged.
 - `.github/workflows/deploy-staging.yml` is a manually dispatched, protected-environment workflow with controlled migration, restart and smoke gates.
 - `.github/workflows/deploy-production.yml` requires CI, protected production approval, dry-run backup/rollback evidence and staging evidence before controlled migration, restart and smoke gates.
 - `docs/operations/deployment.md` documents local usage, secret/environment requirements, migration policy and external reservations.
@@ -43,6 +44,12 @@ Compose also fails closed when required environment variables are absent; no fal
 - The remaining low audit advisory was not changed because no safe upstream resolution was available in this task.
 
 The workflow files are release gates and deployment instructions, not evidence that the external gates have passed.
+
+## Remote CI failure and correction
+
+- Run [40864256471](https://github.com/jupi-z/jt2j/actions/runs/40864256471) failed at `quality / Initialize containers` before checkout because the PostgreSQL service received an empty `POSTGRES_PASSWORD` from the unset `CI_POSTGRES_PASSWORD` secret.
+- `.github/workflows/ci.yml` now supplies the literal disposable password `jt2j-ci-disposable-password` to the PostgreSQL service and matching `DATABASE_URL`; `CI_PAYLOAD_SECRET` and `CI_CSRF_SECRET` remain secret-backed, and no production secret is changed.
+- A focused release-gate contract test covers the disposable password and rejects the former PostgreSQL secret reference. A remote rerun remains external and was not dispatched here.
 
 ## Fix round 1/5 — review findings
 

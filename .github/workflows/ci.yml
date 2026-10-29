@@ -22,13 +22,13 @@ jobs:
         env:
           POSTGRES_DB: jt2j_test
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: jt2j-ci-disposable-password
         ports: ['5432:5432']
         options: >-
           --health-cmd="pg_isready -U postgres -d jt2j_test"
           --health-interval=5s --health-timeout=5s --health-retries=12
     env:
-      DATABASE_URL: postgresql://postgres:${{ secrets.CI_POSTGRES_PASSWORD }}@localhost:5432/jt2j_test
+      DATABASE_URL: postgresql://postgres:jt2j-ci-disposable-password@localhost:5432/jt2j_test
       PAYLOAD_SECRET: ${{ secrets.CI_PAYLOAD_SECRET }}
       CSRF_SECRET: ${{ secrets.CI_CSRF_SECRET }}
       SITE_URL: http://localhost:3000
