@@ -19,8 +19,8 @@ Worktree: `feat/jt2j-production`
 
 | Gate                                                                                      | Result                                                    |
 | ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `pnpm exec vitest run tests/release/release-gates.test.ts tests/leads/lead-route.test.ts` | PASS, 2 files / 23 tests                                  |
-| `pnpm test`                                                                               | PASS, 20 files / 175 tests                                |
+| `pnpm exec vitest run tests/release/release-gates.test.ts tests/leads/lead-route.test.ts` | PASS, 2 files / 27 tests                                  |
+| `pnpm test`                                                                               | PASS, 20 files / 179 tests                                |
 | `pnpm typecheck`                                                                          | PASS                                                      |
 | `pnpm lint`                                                                               | PASS, zero warnings/errors                                |
 | `pnpm audit --audit-level=high`                                                           | PASS at high threshold; 1 low transitive advisory remains |
