@@ -34,6 +34,19 @@ describe('release gate scripts', () => {
     expect(workflow).not.toContain('secrets.CI_POSTGRES_PASSWORD');
   });
 
+  it('pins CI to an explicit Node patch supported by pnpm', async () => {
+    const workflow = await readFile(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../.github/workflows/ci.yml',
+      ),
+      'utf8',
+    );
+
+    expect(workflow).toContain('node-version: 22.13.0');
+    expect(workflow).not.toContain('node-version: 22.12.0');
+  });
+
   it('materializes revision-bound production artifacts before local checks', async () => {
     const workflow = await readFile(
       join(

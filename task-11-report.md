@@ -51,6 +51,14 @@ The workflow files are release gates and deployment instructions, not evidence t
 - `.github/workflows/ci.yml` now supplies the literal disposable password `jt2j-ci-disposable-password` to the PostgreSQL service and matching `DATABASE_URL`; `CI_PAYLOAD_SECRET` and `CI_CSRF_SECRET` remain secret-backed, and no production secret is changed.
 - A focused release-gate contract test covers the disposable password and rejects the former PostgreSQL secret reference. A remote rerun remains external and was not dispatched here.
 
+### Second remote CI failure — Node/pnpm compatibility
+
+- Run [40865156367](https://github.com/jupi-z/jt2j/actions/runs/40865156367) for commit `24e6ac3a867a756af9cdebc904407ec394daf1f0` failed on 2026-10-29 at `quality / Run actions/setup-node@v4` ([job 123417936430](https://github.com/jupi-z/jt2j/actions/runs/40865156367/job/123417936430)).
+- The run reached and passed `Initialize containers`, `actions/checkout@v4` and `pnpm/action-setup@v4`; `actions/setup-node@v4` resolved `node-version: 22.12.0` and reported `node: v22.12.0`.
+- The exact setup-node failure was: `ERROR: This version of pnpm requires at least Node.js v22.13`; `The current version of Node.js is v22.12.0`. Install, migrations, tests, typecheck, lint, audit and build were skipped.
+- `.github/workflows/ci.yml` now pins `node-version: 22.13.0`, an explicit Node 22 patch within the package engine range `^22.12.0 || ^24.0.0` and compatible with pnpm `11.25.0`. No application code, deployment workflow or CI gate was weakened.
+- The focused release-gate contract test now asserts the `22.13.0` pin and rejects `22.12.0`. Remote verification remains external; no run was dispatched here.
+
 ## Fix round 1/5 — review findings
 
 Base: `c1c38c1`
