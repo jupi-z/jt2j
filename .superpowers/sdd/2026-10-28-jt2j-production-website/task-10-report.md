@@ -93,3 +93,30 @@ Date: 2026-10-29
 ## Commit
 
 Round 2 commit: `fix: complete jt2j task 10 QA review round 2`.
+
+## Final gate verification — 2026-10-29
+
+Scope: final QA gates and documentation only. No application behavior was changed.
+
+### Executed gates
+
+- `pnpm test`: exit 0 — 19 test files passed, 171 tests passed. The expected local Payload warning about no email adapter was emitted.
+- `pnpm lint`: exit 0 — ESLint completed with `--max-warnings 0`.
+- `pnpm typecheck`: exit 0 — Next route types generated successfully and `tsc --noEmit` completed.
+- `pnpm build`: exit 0 — production build completed, 45 static pages generated, and route optimization completed.
+- `pnpm audit --prod`: exit 1 — one low-severity `deepmerge` advisory was reported across 6 dependency paths; no patched version was reported.
+- Full Playwright command: `JT2J_E2E_FIXTURES=1 pnpm exec playwright test --project=desktop-chromium --project=mobile-chromium --project=reduced-motion`.
+  - Completed in 6.1 minutes with 253 tests scheduled, 180 passed, and 73 failed.
+  - Two desktop SEO tests timed out while requesting the dev server and ended with `Request context disposed`.
+  - The mobile project attempted to launch `C:\Users\MonarQue\AppData\Local\ms-playwright\webkit-2370\Playwright.exe`, which is absent. This is a QA configuration/environment defect: the `iPhone 13` descriptor currently binds the project to WebKit although the required project is named `mobile-chromium` and WebKit is out of scope.
+  - The reduced-motion project ran as part of this command; no separate completion claim is made for the overall matrix because the command was non-green.
+
+### Interrupted follow-up
+
+After diagnosing the mobile project binding, a narrow rerun was started with `JT2J_E2E_FIXTURES=1 pnpm exec playwright test tests/e2e --project=mobile-chromium`. It announced 69 tests and produced passing output for early tests, but it was intentionally stopped at the user's request before a final summary and exit code. It is not reported as passed. The temporary configuration experiment was reverted; no Playwright configuration change is included in this documentation commit.
+
+### Final reservations
+
+- The final verification is not a release-green result: the dependency audit is open, the full Playwright matrix is non-green, and the post-diagnosis mobile rerun is incomplete.
+- No WebKit test is claimed as run or required. The mobile project binding must be corrected in a future QA-only change and rerun before release.
+- No deployment, public smoke, backup/restore rehearsal, rollback rehearsal, legal/editorial approval, or human business acceptance was performed.

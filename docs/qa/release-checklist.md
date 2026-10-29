@@ -2,14 +2,16 @@
 
 ## Automated gates
 
-- [x] `pnpm lint`
-- [x] `pnpm typecheck`
-- [x] `pnpm test` — 19 files, 171 tests passed
-- [x] Targeted Playwright desktop run — 8 tests passed
-- [ ] Full `pnpm e2e` — not green: service search and FAQ scenarios have no rendered content in the local no-CMS environment
-- [ ] Mobile Playwright project — not run in the time-bounded validation window
-- [ ] `pnpm build` — interrupted before completion; no success claim
-- [ ] Dependency audit — not run; no audit script is defined in `package.json`
+- [x] `pnpm test` — exit 0; 19 files, 171 tests passed
+- [x] `pnpm lint` — exit 0; ESLint completed with zero warnings
+- [x] `pnpm typecheck` — exit 0; route type generation and `tsc --noEmit` completed
+- [x] `pnpm build` — exit 0; 45 static pages generated and route optimization completed
+- [ ] `pnpm audit --prod` — exit 1; one low `deepmerge` advisory across 6 paths, no patched version reported
+- [ ] Full Playwright matrix — completed non-green: 253 scheduled, 180 passed, 73 failed in 6.1 minutes
+- [ ] Desktop Playwright — two SEO tests timed out with `Request context disposed` under the full matrix
+- [ ] Mobile Chromium Playwright — 71 failures attempted to launch missing `webkit-2370`; the current iPhone 13 descriptor binds this project to WebKit. WebKit is not an accepted project for this gate.
+- [ ] Reduced-motion Playwright — included in the non-green full matrix; no standalone completion claim is made
+- [ ] Narrow post-diagnosis mobile rerun — interrupted by the user after announcing 69 tests; no final count or exit code
 
 ## Coverage included in Task 10
 
@@ -31,3 +33,10 @@
 - [x] Required mobile coverage uses Chromium/iPhone 13; WebKit is not required.
 - [x] Search, division filter, FAQ, contact success/error, responsive, locale, and representative accessibility assertions expanded.
 - [ ] Full post-fix `pnpm e2e`, `pnpm test`, `pnpm build`, and audit remain to be rerun; see the fix-round report for exact reservations.
+
+## Final gate status — 2026-10-29
+
+- The unit, lint, typecheck, and production build gates passed with the exact results above.
+- The dependency audit and full Playwright matrix remain open. No release-green claim is made.
+- The portable fixture launcher was used for Playwright. No WebKit test was intentionally run; the mobile project configuration defect must be corrected and rerun in a future QA-only change.
+- The interrupted mobile rerun has no final result and must not be counted as passed.
