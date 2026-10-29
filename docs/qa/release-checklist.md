@@ -1,8 +1,12 @@
 # JT2J release QA checklist
 
+This checklist separates repository evidence from external launch approvals.
+Unchecked staging, production, legal, editorial, business, mail, backup, and
+rollback items are not implied to be complete.
+
 ## Automated gates
 
-- [x] `pnpm test` — exit 0; 20 files, 177 tests passed
+- [x] `pnpm test` — exit 0; 20 files, 181 tests passed
 - [x] `pnpm lint` — exit 0; ESLint completed with zero warnings
 - [x] `pnpm typecheck` — exit 0; route type generation and `tsc --noEmit` completed
 - [x] `pnpm build` — exit 0; 45 static pages generated and route optimization completed
@@ -54,9 +58,59 @@
 
 - Full fixture-backed matrix: `$env:JT2J_E2E_FIXTURES='1'; pnpm e2e` — exit 0; 253/253 passed in 8.6 minutes using one worker across desktop Chromium, mobile Chromium, and reduced-motion. No WebKit project was launched.
 - Standalone reduced motion: `$env:JT2J_E2E_FIXTURES='1'; pnpm exec playwright test tests/e2e --project=reduced-motion` — exit 0; 11/11 passed in 47.1 seconds.
-- `pnpm test` — exit 0; 20 files, 177 tests passed in 64.38 seconds.
+- `pnpm test` — exit 0; 20 files, 181 tests passed in 65.80 seconds.
 - `pnpm lint` — exit 0; ESLint completed with zero warnings.
 - `pnpm typecheck` — exit 0; route type generation and `tsc --noEmit` completed.
 - `pnpm build` — exit 0; 45/45 static pages generated and route optimization completed.
 - `pnpm audit --prod` — exit 1; one low-severity `deepmerge` advisory across 6 paths, no patched version reported. This remains the open automated release reservation.
 - The full E2E result is fixture-backed and does not replace CMS/database, email delivery, deployment, backup/rollback, legal/editorial, or human business-acceptance evidence.
+
+## Task 12 handover and launch gates
+
+### Repository evidence
+
+- [x] Admin role model is documented and implemented for `admin`, `editor`,
+      `publisher`, `translator`, and `sales`.
+- [x] Draft/public separation, bilingual publication checks, legal evidence
+      fields, media-rights evidence, and lead access controls are covered by
+      the repository implementation/tests.
+- [x] CI workflow definition includes frozen install, migrations twice, tests,
+      typecheck, lint, high-severity audit, and build.
+- [x] Smoke, backup-manifest, and rollback-plan checkers are present.
+- [x] Backup and rollback checkers are documented as dry-run validation only;
+      no real restore, traffic switch, or rollback is claimed.
+
+### Human and external approvals required before production
+
+- [ ] Legal identity, legal notice, privacy/cookie text, addresses, and
+      effective dates approved by the responsible human/legal owner.
+- [ ] French and English copy, claims, translations, terminology, and
+      publication scope approved by the editorial owner and publisher.
+- [ ] Brand assets, media rights, credits, and alt text approved and evidenced.
+- [ ] Contact destination, consent/privacy wording, retention, and escalation
+      owner approved; real mail delivery verified with an approved test path.
+- [ ] Staging deployment completed for the exact release revision and its
+      public FR/EN smoke log reviewed.
+- [ ] Provider-generated database and media backups verified for the exact
+      revision; retention and recovery owner recorded.
+- [ ] Restore rehearsal completed in an isolated environment and evidence
+      recorded.
+- [ ] Rollback rehearsal completed with the provider-specific procedure and
+      evidence recorded.
+- [ ] Admin role walkthrough completed with real authorized credentials.
+- [ ] Human business acceptance recorded separately from technical QA.
+- [ ] Production deployment approved, monitored, and followed by FR/EN public
+      smoke checks.
+
+Do not mark the external items complete from a code review, a fixture-backed
+test, a dry-run checker, or the existence of a workflow file. Use
+[handover.md](../operations/handover.md) for owners/evidence and
+[deployment.md](../operations/deployment.md) for the release sequence.
+
+## Current handover boundary
+
+The repository contains no production credentials or provider evidence. The
+documented CI and local/fixture QA results are technical evidence for this
+revision only. They do not establish that staging or production is reachable,
+that mail is delivered, that a backup can be restored, that traffic can be
+rolled back, or that JT2J has accepted the business result.

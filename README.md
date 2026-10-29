@@ -1,8 +1,22 @@
 # JT2J production workspace
 
+## Handover status
+
+The repository contains the implementation and the launch/handover procedures;
+it does not claim a staging or production deployment. Legal approval, editorial
+content approval, business acceptance, real mail delivery, real backup restore,
+and rollback rehearsal remain external gates. Start with:
+
+- [Operational handover](docs/operations/handover.md)
+- [Editorial guide](docs/content/editorial-guide.md)
+- [Content approval matrix](docs/content/content-approval-matrix.md)
+- [Deployment runbook](docs/operations/deployment.md)
+- [Release checklist](docs/qa/release-checklist.md)
+
 Next.js 16 App Router / React 19 / strict TypeScript workspace with a bilingual
 public route skeleton, canonical content contracts, and shared visual shell.
-CMS, approved page content, database, and deployment belong to later tasks.
+Approved production content, provider credentials, and environment evidence are
+not stored in this repository.
 
 ## Local setup
 

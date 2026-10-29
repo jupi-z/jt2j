@@ -2,6 +2,11 @@
 
 This runbook describes the controlled path from a reviewed revision to staging and, only after staging approval, production. It does not claim that any environment has been deployed from this repository.
 
+The companion handover documents define the human responsibilities and
+approval evidence: [handover.md](./handover.md),
+[editorial-guide.md](../content/editorial-guide.md), and
+[content-approval-matrix.md](../content/content-approval-matrix.md).
+
 ## Local verification
 
 Install the locked dependencies with `pnpm install --frozen-lockfile`. Run the normal gates with `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm audit` and `pnpm build`.
@@ -42,9 +47,22 @@ The production workflow is manually dispatched with a revision and targets the p
 
 Production migrations are forward-only through `pnpm cms:migrate`; they are not silently rolled back. A migration failure stops the workflow, and the explicit failure gate records that no automatic rollback occurred. A real restore or rollback requires the provider-specific procedure, the exact snapshot/release identifiers, an incident or release record, and a fresh staging/isolated verification. Destructive production actions remain manual-dispatch and protected-environment steps because provider-specific credentials and procedures are not available in this repository.
 
+Before dispatching production, the release owner must have recorded the
+human/legal/editorial/business approvals and the technical evidence listed in
+[the release checklist](../qa/release-checklist.md). After deployment, run the
+FR and EN public smoke checks, confirm the admin workflow with authorized
+credentials, and monitor the first release window. A successful workflow or
+HTTP smoke result alone is not business acceptance and is not evidence of real
+mail delivery, a restore, or a rollback rehearsal.
+
 ## External gates and non-claims
 
 This repository cannot verify GitHub environment protection, SSH host configuration, provider backup integrity, object-storage rights, DNS/TLS, mail delivery, a real database restore, traffic switching, or a production rollback. Those are explicit external gates. The commit containing this runbook therefore does not claim staging/production deployment, backup creation or restoration, or rollback execution.
+
+Secret rotation and incident response are documented in
+[security.md](./security.md) and [incident-response.md](./incident-response.md).
+Rotate only through the approved secret manager; never add provider values to
+the repository or release notes.
 
 ## Required GitHub secrets and environment controls
 
