@@ -38,24 +38,33 @@ test.describe('public navigation', () => {
     await expect(menu).toBeFocused();
   });
 
-  test('service search and division filter update the result status', async ({ page, openPublic }) => {
-    await openPublic('fr', '/services');
-    const search = page.getByRole('searchbox', { name: /rechercher un service/i });
+  for (const locale of locales) {
+    test(`${locale} service search and division filter update the result status`, async ({ page, openPublic }) => {
+    await openPublic(locale, '/services');
+    const search = page.getByRole('searchbox', { name: /rechercher un service|search services/i });
     await search.fill('nettoyage');
-    await expect(page.getByRole('status')).toContainText(/service trouvé/i);
-    await expect(page.getByRole('link', { name: /nettoyage/i }).first()).toBeVisible();
+    await expect(page.getByRole('status')).toContainText(/service trouvé|services found/i);
+    await expect(page.getByRole('link', { name: /nettoyage|cleaning/i }).first()).toBeVisible();
+    const division = page.getByLabel(/pôle|division/i);
+    await division.selectOption('travel-escapes');
+    await expect(page.getByRole('status')).toContainText(/service trouvé|services found/i);
+    await expect(page.getByRole('link', { name: /voyages|travel/i }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /nettoyage|cleaning/i })).toHaveCount(0);
     await search.fill('terme-inexistant');
-    await expect(page.getByRole('status')).toContainText(/aucun service trouvé/i);
-  });
+    await expect(page.getByRole('status')).toContainText(/aucun service trouvé|no service found/i);
+    });
+  }
 
-  test('FAQ disclosure opens and exposes its answer', async ({ page, openPublic }) => {
-    await openPublic('fr', '/faq');
+  for (const locale of locales) {
+  test(`${locale} FAQ disclosure opens and exposes its answer`, async ({ page, openPublic }) => {
+    await openPublic(locale, '/faq');
     const item = page.locator('details').first();
     await expect(item).not.toHaveAttribute('open');
     await item.locator('summary').click();
     await expect(item).toHaveAttribute('open', '');
     await expect(item.locator('p')).toBeVisible();
   });
+  }
 
   test('unknown locale route returns the localized 404 page', async ({ page }) => {
     const response = await page.goto('/fr/route-inconnue');

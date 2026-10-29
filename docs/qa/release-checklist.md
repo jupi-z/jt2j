@@ -24,3 +24,10 @@
 - Contact success is browser-mocked; transactional email delivery, persistence, rate limiting, and admin receipt require a configured disposable integration environment.
 - No staging or production deployment, backup, rollback, legal approval, content approval, or business acceptance was performed by Task 10.
 - The Next.js development server reports its expected React `eval()` warning. This is not production evidence.
+
+## Fix round 1 status
+
+- [x] Isolated bilingual published-shaped browser fixtures and explicit fixture server launcher added.
+- [x] Required mobile coverage uses Chromium/iPhone 13; WebKit is not required.
+- [x] Search, division filter, FAQ, contact success/error, responsive, locale, and representative accessibility assertions expanded.
+- [ ] Full post-fix `pnpm e2e`, `pnpm test`, `pnpm build`, and audit remain to be rerun; see the fix-round report for exact reservations.

@@ -14,7 +14,9 @@ for (const locale of ['fr', 'en']) {
       expect(document.querySelectorAll('main#main h1')).toHaveLength(1);
       expect(document.querySelector('header')).not.toBeNull();
       expect(document.querySelector('footer')).not.toBeNull();
-      expect(document.querySelector('form')).toBeNull();
+      const form = document.querySelector('form');
+      if (path === '/contact') expect(form).not.toBeNull();
+      else expect(form).toBeNull();
       for (const link of document.querySelectorAll(
         'header a[href], footer a[href]',
       )) {

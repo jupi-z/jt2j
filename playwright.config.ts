@@ -25,7 +25,7 @@ export default defineConfig({
     command:
       process.env.PLAYWRIGHT_PRODUCTION === '1'
         ? 'pnpm start --hostname 127.0.0.1 --port 3100'
-        : 'pnpm dev --hostname 127.0.0.1 --port 3100',
+        : 'node scripts/e2e-server.mjs',
     url: 'http://127.0.0.1:3100',
     reuseExistingServer: false,
     timeout: 60_000,

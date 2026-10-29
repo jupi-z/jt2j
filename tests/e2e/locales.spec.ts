@@ -5,7 +5,7 @@ test.describe('locale and accessibility contract', () => {
     test(`${locale} exposes landmarks, headings, labels, and keyboard focus`, async ({ page, openPublic }) => {
       await openPublic(locale, '/contact');
       await expectPublicShell(page, locale);
-      await expect(await page.getByRole('navigation').count()).toBeGreaterThan(0);
+      expect(await page.getByRole('navigation').count()).toBeGreaterThan(0);
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
       await expect(page.getByLabel(/nom|name/i)).toBeVisible();
       await expect(page.getByLabel(/message/i)).toBeVisible();

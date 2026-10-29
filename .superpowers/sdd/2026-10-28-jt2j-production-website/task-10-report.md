@@ -38,3 +38,31 @@ The first E2E run was intentionally red. Initial failures included test-harness 
 ## Commit
 
 The intended commit message is `test: complete jt2j release verification suite`.
+
+## Fix round 1 — review findings
+
+Date: 2026-10-29
+Commit: follow-up QA fix commit `fix: complete jt2j task 10 QA review` (hash returned with the final worktree state).
+
+### Implemented
+
+- Added `src/queries/e2ePublicContent.ts`, an explicitly isolated browser fixture provider. It is enabled only by the Playwright launcher through `JT2J_E2E_FIXTURES=1`; normal local, staging, and production content loading remains CMS-backed or fail-closed. Fixture records are bilingual, published, publication-approved, SEO-shaped, and include approved legal evidence; the real Next routes, queries, and UI render them.
+- Added `scripts/e2e-server.mjs` so the fixture environment is actually propagated on Windows and CI. Required browser projects remain Chromium desktop plus the iPhone 13 mobile device; no WebKit project is required or hidden behind a skip.
+- Added `tests/e2e/responsive.spec.ts` for mobile-width service and contact layout checks.
+- Expanded search and FAQ interaction coverage to FR and EN, including a real division select filter and result assertions.
+- Expanded contact success and server-error coverage to FR and EN.
+- Expanded axe checks to home, services, FAQ, and contact routes in both locales.
+- Corrected `tests/routing/locale-routes.spec.ts`: contact pages require a form; non-contact public routes require no form.
+
+### Exact verification evidence observed in this fix round
+
+- `pnpm typecheck`: passed; `next typegen` and `tsc --noEmit` completed successfully.
+- `pnpm lint`: passed; ESLint completed with `--max-warnings 0`.
+- Targeted Playwright run was started with 111 tests on `--project=desktop-chromium`. It reached the browser suite and exposed two failures, both because the first fixture-environment implementation was not propagated: FR and EN service search timed out waiting for the searchbox. That implementation was then replaced by `scripts/e2e-server.mjs`.
+- After that launcher change, the follow-up targeted Playwright command was intentionally interrupted at the user's request before producing a final exit status. The post-change green result is therefore not claimed.
+
+### Explicit reservations
+
+- Full `pnpm e2e` was not completed after the final launcher change; mobile Chromium and reduced-motion full-matrix results remain unverified in this fix round.
+- `pnpm test`, `pnpm build`, and dependency audit were not rerun after the final fix because the user requested immediate finalization. The previous report's evidence/reservations remain in force: unit tests had passed at 19 files/171 tests, the build had been interrupted without an exit status, and audit had not been run.
+- No test was skipped for WebKit or another unavailable external dependency. No deployment, public smoke, backup/restore rehearsal, rollback rehearsal, legal/editorial approval, or business acceptance was performed.
