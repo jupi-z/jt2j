@@ -73,7 +73,7 @@ describe('release gate scripts', () => {
     ).toContain('SMOKE_BASE_URL: ${{ secrets.PRODUCTION_BASE_URL }}');
   });
 
-  it('pins CI to an explicit Node patch supported by pnpm', async () => {
+  it('pins CI to the Node patch required by the resolved test dependencies', async () => {
     const workflow = await readFile(
       join(
         dirname(fileURLToPath(import.meta.url)),
@@ -82,7 +82,8 @@ describe('release gate scripts', () => {
       'utf8',
     );
 
-    expect(workflow).toContain('node-version: 22.13.0');
+    expect(workflow).toContain('node-version: 24.15.0');
+    expect(workflow).not.toContain('node-version: 22.13.0');
     expect(workflow).not.toContain('node-version: 22.12.0');
   });
 

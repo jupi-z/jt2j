@@ -116,3 +116,25 @@ Manual prerequisite: an authorized backup job must upload `jt2j-production-backu
 | `git diff --check` | PASS |
 
 No GitHub Actions run was dispatched or observed. Staging, production deployment, real artifact export, restore rehearsal, rollback rehearsal and all provider/external gates remain deferred; no production state changed.
+
+### Fifth remote CI failure — resolved dependency Node API compatibility
+
+- Run [40905489853](https://github.com/jupi-z/jt2j/actions/runs/40905489853) passed PostgreSQL service setup, `pnpm install --frozen-lockfile`, and both `pnpm cms:migrate` invocations.
+- The run then failed in the Vitest workers under the CI pin `node-version: 22.13.0`. The resolved dependency graph contains `undici@8.12.3` through `jsdom@30.1.3`; the lockfile records `undici@8.12.3` with engine `>=22.19.0` and `jsdom@30.1.3` with engines `^22.22.2 || ^24.15.0 || >=26.0.0`. The worker failure therefore occurred after setup and migrations because the Node 22.13 runtime was below the APIs required by the resolved test dependencies.
+- `.github/workflows/ci.yml` now pins CI explicitly to Node `24.15.0`, the smallest compatible Node 24 patch for the resolved `jsdom` engine range and within the package's existing `^24.0.0` engine range. All existing CI gates remain present and production/staging workflows are unchanged.
+- The release-gate contract test now requires `node-version: 24.15.0` and rejects both old `22.13.0` and `22.12.0` pins.
+
+This section records remote failure evidence supplied by the GitHub Actions run. Local validation of the corrected workflow contract and project gates is reported separately; no GitHub Actions rerun was dispatched from this worktree, and no remote green result is claimed.
+
+### Local validation for the Node pin correction
+
+- Local runtime: `node --version` → `v24.21.0`; `pnpm --version` → `11.25.0`.
+- `pnpm exec vitest run tests/release/release-gates.test.ts` → PASS, 1 file / 9 tests, including the new `24.15.0` contract and rejection of both old pins.
+- `pnpm test` → PASS, 20 files / 181 tests; existing Payload no-email-adapter warnings only.
+- `pnpm typecheck` → PASS.
+- `pnpm lint` → PASS, zero errors/warnings.
+- `pnpm audit --audit-level=high` → PASS at the high threshold; 1 low transitive advisory remains.
+- `pnpm build` → PASS; 45 static pages generated.
+- `git diff --check` → PASS.
+
+These are local checks only. They do not replace a fresh GitHub Actions run on the committed revision.
