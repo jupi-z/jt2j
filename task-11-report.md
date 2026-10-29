@@ -16,19 +16,19 @@ Worktree: `feat/jt2j-production`
 
 ## Local evidence
 
-| Gate | Result |
-|---|---|
-| `pnpm exec vitest run tests/release/release-gates.test.ts tests/leads/lead-route.test.ts` | PASS, 2 files / 23 tests |
-| `pnpm test` | PASS, 20 files / 175 tests |
-| `pnpm typecheck` | PASS |
-| `pnpm lint` | PASS, zero warnings/errors |
-| `pnpm audit --audit-level=high` | PASS at high threshold; 1 low transitive advisory remains |
-| `pnpm build` | PASS; Next standalone output generated |
-| `pnpm smoke:public` against local standalone server | PASS, 41 checks without contact mode |
-| `pnpm smoke:public` with local opt-in contact mode | PASS, 42 checks including contact test mode |
-| `pnpm backup:check` with temporary verified manifest | PASS, `dryRun=true` |
-| `pnpm rollback:check` with temporary plan | PASS, `dryRun=true` |
-| `docker compose config --quiet` with local-only environment values | PASS |
+| Gate                                                                                      | Result                                                    |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `pnpm exec vitest run tests/release/release-gates.test.ts tests/leads/lead-route.test.ts` | PASS, 2 files / 23 tests                                  |
+| `pnpm test`                                                                               | PASS, 20 files / 175 tests                                |
+| `pnpm typecheck`                                                                          | PASS                                                      |
+| `pnpm lint`                                                                               | PASS, zero warnings/errors                                |
+| `pnpm audit --audit-level=high`                                                           | PASS at high threshold; 1 low transitive advisory remains |
+| `pnpm build`                                                                              | PASS; Next standalone output generated                    |
+| `pnpm smoke:public` against local standalone server                                       | PASS, 41 checks without contact mode                      |
+| `pnpm smoke:public` with local opt-in contact mode                                        | PASS, 42 checks including contact test mode               |
+| `pnpm backup:check` with temporary verified manifest                                      | PASS, `dryRun=true`                                       |
+| `pnpm rollback:check` with temporary plan                                                 | PASS, `dryRun=true`                                       |
+| `docker compose config --quiet` with local-only environment values                        | PASS                                                      |
 
 The three scripts also fail closed without their required configuration: missing `SMOKE_BASE_URL`, `BACKUP_MANIFEST` or `ROLLBACK_PLAN` each produced exit code 1.
 
@@ -43,3 +43,33 @@ Compose also fails closed when required environment variables are absent; no fal
 - The remaining low audit advisory was not changed because no safe upstream resolution was available in this task.
 
 The workflow files are release gates and deployment instructions, not evidence that the external gates have passed.
+
+## Fix round 1/5 — review findings
+
+Base: `c1c38c1`
+
+### Changes
+
+- `scripts/backup-check.ts` now requires real database/media file artifacts, recomputes SHA-256 checksums, rejects missing/empty or stale evidence, and binds each artifact to the manifest release/revision. The CLI also requires `BACKUP_EXPECTED_REVISION`; a JSON `verified` flag is not used.
+- `scripts/rollback-check.ts` now requires a real previous-release artifact, recomputes its SHA-256 checksum, rejects missing/empty or stale evidence, and binds the artifact and target to the declared revisions. The CLI requires `ROLLBACK_EXPECTED_TARGET_REVISION`.
+- `scripts/smoke-public.ts` now accepts the contact smoke request only for HTTP `202` with JSON `{ accepted: true, testMode: true }`.
+- CI applies migrations twice against its disposable PostgreSQL service, providing an idempotent migration verification gate without targeting production.
+- `docker-compose.yml` builds the app database URL with the `postgres` service hostname.
+- Staging and production workflows now name forward-only migration and post-deploy smoke gates explicitly, and record failure as requiring a manual/provider-specific rollback decision. No automatic rollback is claimed or performed.
+- `docs/operations/deployment.md` documents the artifact schema, freshness/integrity checks, disposable CI migration gate, and the remaining provider-specific manual gates.
+
+### Fix-round commands and outputs
+
+| Command                                                    | Result                                                                                                 |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `pnpm exec vitest run tests/release/release-gates.test.ts` | PASS — 1 file / 4 tests                                                                                |
+| `pnpm test`                                                | PASS — 20 files / 176 tests; Payload emitted existing no-email-adapter warnings                        |
+| `pnpm lint`                                                | PASS — zero errors/warnings                                                                            |
+| `pnpm typecheck`                                           | PASS — Next route type generation and `tsc --noEmit`                                                   |
+| `pnpm build`                                               | PASS — Next production build, 45 static pages generated                                                |
+| `pnpm exec prettier --check <changed files>`               | PASS — all changed files formatted                                                                     |
+| `git diff --check`                                         | PASS                                                                                                   |
+| `docker compose config --quiet` with local-only values     | PASS                                                                                                   |
+| `actionlint`                                               | DEFERRED — executable unavailable in this environment (`actionlint unavailable: executable not found`) |
+
+No GitHub Actions run, staging deployment, production deployment, backup creation/restore, or rollback was executed. These remain external/manual gates and no production state was changed.

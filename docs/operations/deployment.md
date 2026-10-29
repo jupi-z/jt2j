@@ -13,9 +13,9 @@ $env:SMOKE_BASE_URL = 'http://localhost:3000'
 pnpm smoke:public
 ```
 
-`pnpm backup:check` validates a provider-produced manifest containing database and media object identifiers, checksums, release and verification timestamp. It is a dry-run verification only: it does not create, copy, restore or delete a backup.
+`pnpm backup:check` validates a provider-produced manifest containing readable database and media artifact paths, SHA-256 checksums, matching release/revision bindings and a fresh `createdAt`. It recomputes both checksums and requires the files to exist and be non-empty; a `verified: true` field is not evidence. Set `BACKUP_EXPECTED_REVISION` in CI/release preflight. It is a dry-run verification only: it does not create, copy, restore or delete a backup.
 
-`pnpm rollback:check` validates a plan naming distinct previous and target releases, a relative health path, smoke command and migration policy. It is a dry-run verification only: it does not switch traffic, change symlinks, run migrations or restore data.
+`pnpm rollback:check` validates a plan naming distinct previous and target releases/revisions, a readable non-empty previous-release artifact, its SHA-256 checksum, matching binding and fresh evidence, plus a relative health path, smoke command and migration policy. Set `ROLLBACK_EXPECTED_TARGET_REVISION` in CI/release preflight. It is a dry-run verification only: it does not switch traffic, change symlinks, run migrations or restore data.
 
 ## Docker and local services
 
@@ -28,7 +28,7 @@ docker compose --profile app up --build
 
 ## CI gates
 
-`.github/workflows/ci.yml` runs on pull requests and protected branch pushes, and is reusable by deployment workflows. It installs the lockfile, runs the test suite, typecheck, lint, high-severity audit and production build, then retains build metadata as an artifact. CI database and application secrets are GitHub Actions secrets.
+`.github/workflows/ci.yml` runs on pull requests and protected branch pushes, and is reusable by deployment workflows. It installs the lockfile, applies migrations twice to the disposable CI PostgreSQL service (the second run verifies there are no pending migrations), then runs the test suite, typecheck, lint, high-severity audit and production build, and retains build metadata as an artifact. This gate never targets production. CI database and application secrets are GitHub Actions secrets.
 
 ## Staging
 
@@ -40,7 +40,7 @@ No staging deployment or smoke run is considered evidence until the workflow log
 
 The production workflow is manually dispatched with a revision and targets the protected `production` environment. Its preflight gate requires provider-supplied backup-manifest JSON, rollback-plan JSON and staging evidence, then verifies each locally with the dry-run scripts. Only after that gate and the environment approval can the deployment job run the controlled migration, restart and public smoke checks.
 
-Production migrations are forward-only through `pnpm cms:migrate`; they are not silently rolled back. A migration failure stops the workflow. A real restore or rollback requires the provider-specific procedure, the exact snapshot/release identifiers, an incident or release record, and a fresh staging/isolated verification.
+Production migrations are forward-only through `pnpm cms:migrate`; they are not silently rolled back. A migration failure stops the workflow, and the explicit failure gate records that no automatic rollback occurred. A real restore or rollback requires the provider-specific procedure, the exact snapshot/release identifiers, an incident or release record, and a fresh staging/isolated verification. Destructive production actions remain manual-dispatch and protected-environment steps because provider-specific credentials and procedures are not available in this repository.
 
 ## External gates and non-claims
 

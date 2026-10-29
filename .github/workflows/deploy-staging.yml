@@ -49,7 +49,8 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.STAGING_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
-      - name: Run controlled staging migration and restart
+      - name: Forward-only staging migration gate (failure stops; no automatic rollback)
+        if: ${{ success() }}
         env:
           HOST: ${{ secrets.STAGING_SSH_HOST }}
           USER: ${{ secrets.STAGING_SSH_USER }}
@@ -70,8 +71,14 @@ jobs:
           pnpm build
           systemctl restart jt2j-staging
           REMOTE
-      - name: Smoke staging public surface
+      - name: Smoke staging public surface (required post-deploy gate)
+        if: ${{ success() }}
         env:
           SMOKE_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
           SMOKE_CONTACT_TOKEN: ${{ secrets.STAGING_CONTACT_SMOKE_TOKEN }}
         run: pnpm smoke:public
+      - name: Record deployment failure and require manual rollback decision
+        if: ${{ failure() }}
+        run: |
+          echo '::error::Staging deployment failed. No automatic rollback was performed; use the approved manual rollback procedure.'
+          exit 1

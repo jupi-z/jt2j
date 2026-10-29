@@ -44,14 +44,14 @@ jobs:
         run: |
           test -n "$BACKUP_MANIFEST_JSON"
           printf '%s' "$BACKUP_MANIFEST_JSON" > "$RUNNER_TEMP/jtj2-backup.json"
-          BACKUP_MANIFEST="$RUNNER_TEMP/jtj2-backup.json" pnpm backup:check
+          BACKUP_MANIFEST="$RUNNER_TEMP/jtj2-backup.json" BACKUP_EXPECTED_REVISION="${{ inputs.revision }}" pnpm backup:check
       - name: Verify rollback plan (dry-run only)
         env:
           ROLLBACK_PLAN_JSON: ${{ secrets.PRODUCTION_ROLLBACK_PLAN_JSON }}
         run: |
           test -n "$ROLLBACK_PLAN_JSON"
           printf '%s' "$ROLLBACK_PLAN_JSON" > "$RUNNER_TEMP/jtj2-rollback.json"
-          ROLLBACK_PLAN="$RUNNER_TEMP/jtj2-rollback.json" pnpm rollback:check
+          ROLLBACK_PLAN="$RUNNER_TEMP/jtj2-rollback.json" ROLLBACK_EXPECTED_TARGET_REVISION="${{ inputs.revision }}" pnpm rollback:check
       - name: Verify approved staging smoke evidence
         env:
           STAGING_EVIDENCE: ${{ secrets.PRODUCTION_STAGING_EVIDENCE }}
@@ -82,7 +82,8 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
-      - name: Run controlled production migration and restart
+      - name: Forward-only production migration gate (failure stops; no automatic rollback)
+        if: ${{ success() }}
         env:
           HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
           USER: ${{ secrets.PRODUCTION_SSH_USER }}
@@ -103,7 +104,13 @@ jobs:
           pnpm build
           systemctl restart jt2j-production
           REMOTE
-      - name: Smoke production public surface
+      - name: Smoke production public surface (required post-deploy gate)
+        if: ${{ success() }}
         env:
           SMOKE_BASE_URL: ${{ secrets.PRODUCTION_BASE_URL }}
         run: pnpm smoke:public
+      - name: Record deployment failure and require manual rollback decision
+        if: ${{ failure() }}
+        run: |
+          echo '::error::Production deployment failed. No automatic rollback was performed; use the provider-specific manual rollback procedure after incident approval.'
+          exit 1
