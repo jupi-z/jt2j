@@ -45,6 +45,14 @@ Compose also fails closed when required environment variables are absent; no fal
 
 The workflow files are release gates and deployment instructions, not evidence that the external gates have passed.
 
+### Fourth remote CI failure — CMS migration test secrets
+
+- Run [40868025063](https://github.com/jupi-z/jt2j/actions/runs/40868025063) passed PostgreSQL service initialization, Node `22.13.0` setup and `pnpm install`.
+- The next `pnpm cms:migrate` step failed because `PAYLOAD_SECRET` and `CSRF_SECRET` were empty in the CI job. `src/payload/config.ts` requires `PAYLOAD_SECRET` to be at least 32 characters, so the migration gate stopped before the remaining tests and checks.
+- `.github/workflows/ci.yml` now provides the disposable, non-production literals `jt2j-ci-disposable-payload-secret-32-characters` and `jt2j-ci-disposable-csrf-secret-32-characters` directly in the CI job environment. They are distinct and each exceeds the 32-character minimum.
+- Production and staging secret-backed behavior is unchanged. The focused release-gate contract test asserts the two CI values are direct, distinct and sufficiently long, and confirms the deployment workflows retain their environment-backed secret references.
+- No remote rerun was dispatched from this worktree; remote verification remains external.
+
 ## Remote CI failure and correction
 
 - Run [40864256471](https://github.com/jupi-z/jt2j/actions/runs/40864256471) failed at `quality / Initialize containers` before checkout because the PostgreSQL service received an empty `POSTGRES_PASSWORD` from the unset `CI_POSTGRES_PASSWORD` secret.

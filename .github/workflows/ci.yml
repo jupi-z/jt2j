@@ -29,8 +29,8 @@ jobs:
           --health-interval=5s --health-timeout=5s --health-retries=12
     env:
       DATABASE_URL: postgresql://postgres:jt2j-ci-disposable-password@localhost:5432/jt2j_test
-      PAYLOAD_SECRET: ${{ secrets.CI_PAYLOAD_SECRET }}
-      CSRF_SECRET: ${{ secrets.CI_CSRF_SECRET }}
+      PAYLOAD_SECRET: jt2j-ci-disposable-payload-secret-32-characters
+      CSRF_SECRET: jt2j-ci-disposable-csrf-secret-32-characters
       SITE_URL: http://localhost:3000
       NODE_ENV: test
     steps:

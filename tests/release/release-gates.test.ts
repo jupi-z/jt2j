@@ -34,6 +34,45 @@ describe('release gate scripts', () => {
     expect(workflow).not.toContain('secrets.CI_POSTGRES_PASSWORD');
   });
 
+  it('provides distinct disposable CMS secrets directly to the CI job', async () => {
+    const workflow = await readFile(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../.github/workflows/ci.yml',
+      ),
+      'utf8',
+    );
+    const payloadSecret = workflow.match(/PAYLOAD_SECRET:\s*([^\s]+)/)?.[1];
+    const csrfSecret = workflow.match(/CSRF_SECRET:\s*([^\s]+)/)?.[1];
+
+    expect(payloadSecret).toBeDefined();
+    expect(csrfSecret).toBeDefined();
+    expect(payloadSecret!.length).toBeGreaterThanOrEqual(32);
+    expect(csrfSecret!.length).toBeGreaterThanOrEqual(32);
+    expect(payloadSecret).not.toBe(csrfSecret);
+    expect(payloadSecret).not.toContain('${{ secrets.');
+    expect(csrfSecret).not.toContain('${{ secrets.');
+
+    expect(
+      await readFile(
+        join(
+          dirname(fileURLToPath(import.meta.url)),
+          '../../.github/workflows/deploy-staging.yml',
+        ),
+        'utf8',
+      ),
+    ).toContain('SMOKE_BASE_URL: ${{ secrets.STAGING_BASE_URL }}');
+    expect(
+      await readFile(
+        join(
+          dirname(fileURLToPath(import.meta.url)),
+          '../../.github/workflows/deploy-production.yml',
+        ),
+        'utf8',
+      ),
+    ).toContain('SMOKE_BASE_URL: ${{ secrets.PRODUCTION_BASE_URL }}');
+  });
+
   it('pins CI to an explicit Node patch supported by pnpm', async () => {
     const workflow = await readFile(
       join(
