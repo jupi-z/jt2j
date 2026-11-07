@@ -1,5 +1,8 @@
 # JT2J production workspace
 
+> **Source visuelle actuelle (7 novembre 2026)** : le design approuvé est le [Figma JT2J](https://www.figma.com/design/qeBdozIvoJhps8JGj7ItsS), documenté dans [`docs/figma/CODEX_START_HERE.md`](docs/figma/CODEX_START_HERE.md). La mise en page implémentée dans cette branche technique provient encore en partie du prototype précédent : aucune parité pixel avec Figma V2 n'est ici déclarée. Les validations métier, légales et médias restent obligatoires.
+
+
 ## Handover status
 
 The repository contains the implementation and the launch/handover procedures;
