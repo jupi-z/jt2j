@@ -37,11 +37,13 @@ for (const [index, asset] of (manifest.assets ?? []).entries()) {
   const id = String(expectedId).padStart(2, '0');
   check(asset.id === expectedId, `Prompt ${id} is out of order`);
   check(asset.source_prompt_id === id, `Prompt ${id} has an unexpected source ID`);
-  const match = promptSource.match(new RegExp(`^## ${id}\\. ([^\\n]+)\\n\\n\\*\\*Format :\\*\\* \\`([^\\`]+)\\`[\\s\\S]*?\\`\\`\\`text\\n([\\s\\S]*?)\\n\\`\\`\\``, 'm'));
-  check(Boolean(match), `Prompt ${id} missing heading, aspect ratio or complete code block`);
+  const section = promptSource.split(/^## (?=\\d{2}\\. )/m)[expectedId] ?? '';
+  const match = section.match(/^(\\d{2})\\. ([^\\n]+)\\n\\n\\*\\*Format :\\*\\* `([^`]+)`[\\s\\S]*?```text\\n([\\s\\S]*?)\\n```/);
+  check(Boolean(match), `Prompt ${id} missing heading, ratio or complete code block`);
   if (match) {
-    check(match[2] === asset.aspect_ratio, `Prompt ${id} aspect ratio differs from manifest`);
-    check(match[3].length > 500, `Prompt ${id} is not a full standalone scene description`);
+    check(match[1] === id && match[2].trim() === asset.title, `Prompt ${id} title differs from source`);
+    check(match[3] === asset.aspect_ratio, `Prompt ${id} aspect ratio differs from manifest`);
+    check(match[4].length > 500, `Prompt ${id} is not a complete autonomous description`);
   }
   const route = routes.get(asset.route_identity);
   check(Boolean(route), `Prompt ${id} refers to unknown route identity`);
