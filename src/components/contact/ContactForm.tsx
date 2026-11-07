@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import type { Locale } from '@/i18n/config';
 import { LeadConfirmation } from './LeadConfirmation';
 import { contactDivisionOptions, contactServiceOptions, getContactPrefill } from './contactOptions';
@@ -60,20 +60,31 @@ const copy = {
   },
 } as const;
 
+function subscribeLocation(onChange: () => void) {
+  window.addEventListener('popstate', onChange);
+  return () => window.removeEventListener('popstate', onChange);
+}
+
+function getClientSearch() {
+  return window.location.search;
+}
+
+function getServerSearch() {
+  return '';
+}
+
 export function ContactForm({ locale, sourcePage }: Props) {
   const labels = copy[locale];
   const [status, setStatus] = useState<
     'idle' | 'sending' | 'error' | 'notification-error'
   >('idle');
   const [confirmationId, setConfirmationId] = useState<string>();
-  const [selectedDivision, setSelectedDivision] = useState('');
-  const [selectedService, setSelectedService] = useState('');
-
-  useEffect(() => {
-    const prefill = getContactPrefill(window.location.search);
-    setSelectedDivision(prefill.division);
-    setSelectedService(prefill.service);
-  }, []);
+  // Stable server snapshot avoids reading location during hydration.
+  const locationSearch = useSyncExternalStore(subscribeLocation, getClientSearch, getServerSearch);
+  const prefill = getContactPrefill(locationSearch);
+  const [selection, setSelection] = useState<{ division: string; service: string } | null>(null);
+  const selectedDivision = selection?.division ?? prefill.division;
+  const selectedService = selection?.service ?? prefill.service;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -150,10 +161,9 @@ export function ContactForm({ locale, sourcePage }: Props) {
           {labels.division}
           <select name="division" value={selectedDivision} onChange={(event) => {
             const next = event.currentTarget.value;
-            setSelectedDivision(next);
-            if (contactServiceOptions.find((item) => item.slug === selectedService)?.division !== next) {
-              setSelectedService('');
-            }
+            const serviceBelongsToDivision =
+              contactServiceOptions.find((item) => item.slug === selectedService)?.division === next;
+            setSelection({ division: next, service: serviceBelongsToDivision ? selectedService : '' });
           }}>
             <option value="">{labels.divisionNone}</option>
             {contactDivisionOptions.map((item) => (
@@ -165,9 +175,8 @@ export function ContactForm({ locale, sourcePage }: Props) {
           {labels.service}
           <select name="service" value={selectedService} onChange={(event) => {
             const next = event.currentTarget.value;
-            setSelectedService(next);
             const related = contactServiceOptions.find((item) => item.slug === next);
-            if (related) setSelectedDivision(related.division);
+            setSelection({ division: related?.division ?? selectedDivision, service: next });
           }}>
             <option value="">{labels.serviceNone}</option>
             {contactServiceOptions.map((item) => (
