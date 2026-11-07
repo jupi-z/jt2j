@@ -29,7 +29,8 @@
     "format:check": "prettier --check .",
     "qa:figma": "node scripts/check-figma-assets.mjs",
     "qa:figma-images": "node scripts/check-figma-assets.mjs --require-images",
-    "qa:figma-publication": "node scripts/check-figma-assets.mjs --require-publication"
+    "qa:figma-publication": "node scripts/check-figma-assets.mjs --require-publication",
+    "qa:figma-capture": "node scripts/capture-figma-parity.mjs"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.92.1",
