@@ -37,8 +37,8 @@ for (const [index, asset] of (manifest.assets ?? []).entries()) {
   const id = String(expectedId).padStart(2, '0');
   check(asset.id === expectedId, `Prompt ${id} is out of order`);
   check(asset.source_prompt_id === id, `Prompt ${id} has an unexpected source ID`);
-  const section = promptSource.split(/^## (?=\\d{2}\\. )/m)[expectedId] ?? '';
-  const match = section.match(/^(\\d{2})\\. ([^\\n]+)\\n\\n\\*\\*Format :\\*\\* `([^`]+)`[\\s\\S]*?```text\\n([\\s\\S]*?)\\n```/);
+  const section = promptSource.split(/^## (?=\d{2}\. )/m)[expectedId] ?? '';
+  const match = section.match(/^(\d{2})\. ([^\n]+)\n\n\*\*Format :\*\* `([^`]+)`[\s\S]*?```text\n([\s\S]*?)\n```/);
   check(Boolean(match), `Prompt ${id} missing heading, ratio or complete code block`);
   if (match) {
     check(match[1] === id && match[2].trim() === asset.title, `Prompt ${id} title differs from source`);
