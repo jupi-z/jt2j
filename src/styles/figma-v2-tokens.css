@@ -1,0 +1,35 @@
+/*
+ * JT2J Figma V2 token contract (7 November 2026).
+ * Source: Figma qeBdozIvoJhps8JGj7ItsS, contract frame 87:3075.
+ * These names are intentionally separate from the legacy prototype tokens.
+ * Do NOT reinterpret the older --navy / --gold / --font-display values as
+ * the approved Figma identity; migrate component selectors deliberately.
+ */
+:root {
+  --jt2j-navy: #05122c;
+  --jt2j-deep: #0b2d58;
+  --jt2j-blue: #1686bb;
+  --jt2j-blue-action: #0b6d9b;
+  --jt2j-gold: #c59a45;
+  --jt2j-white: #ffffff;
+  --jt2j-mist: #f3f6f9;
+  --jt2j-ink: #111827;
+  --jt2j-sub: #566374;
+  --jt2j-soft: #dce5ef;
+  --jt2j-line: #ccd6e0;
+  --jt2j-error: #a32d35;
+  --jt2j-positive: #126649;
+  --jt2j-container: 1220px;
+  --jt2j-mobile-gutter: 24px;
+  --jt2j-font-heading: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --jt2j-font-body: 'Barlow', Arial, sans-serif;
+  --jt2j-motion-fast: 180ms;
+  --jt2j-motion-menu: 280ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --jt2j-motion-fast: 0ms;
+    --jt2j-motion-menu: 0ms;
+  }
+}

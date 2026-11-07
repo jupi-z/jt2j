@@ -1,5 +1,8 @@
 # JT2J — rapport de parité avec le prototype
 
+> **Archive de recette — 30 octobre 2026.** Ce rapport ne vérifie que la parité avec l'ancien prototype HTML. Le nouveau Figma validé le 7 novembre est désormais la référence de conception. Pour la nouvelle conversion : [`docs/figma/CODEX_START_HERE.md`](../figma/CODEX_START_HERE.md) et [`JT2J_Figma_NextJS_Mapping.json`](../figma/JT2J_Figma_NextJS_Mapping.json). Aucune note de fidélité au nouveau Figma n'est impliquée par les tests historiques.
+
+
 Date de vérification : 2026-10-30
 
 ## Référence

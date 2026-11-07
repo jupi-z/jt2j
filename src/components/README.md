@@ -1,5 +1,8 @@
 # Shared visual foundations
 
+> **Migration en cours :** ce document décrit les composants actuellement codés pour l'ancien prototype (Arial/Georgia et anciens tokens). Il ne décrit **pas** la nouvelle identité Figma validée. Les fondations de la nouvelle palette sont dans `src/styles/figma-v2-tokens.css`, et le contrat de conversion est dans `docs/figma/CODEX_START_HERE.md`. Ne pas considérer les styles historiques comme la cible finale.
+
+
 Import order is `tokens.css`, `typography.css`, then `globals.css` (already loaded
 by the root layout). The fonts are the prototype's system Arial/Helvetica and
 Georgia/Times stacks; no external font or invented brand asset is required.

@@ -1,0 +1,1527 @@
+{
+  "schema": "jt2j-editorial-image-workflow/v1",
+  "source": "docs/figma/JT2J_43_prompts_universels.md",
+  "file_origin": "43 detailed standalone prompts validated in the JT2J conversation",
+  "status": "awaiting-codex-generation-and-human-media-approval",
+  "usage": "fictional editorial imagery only; not a representation of real JT2J teams, premises or customer projects",
+  "figma_reference": "https://www.figma.com/design/qeBdozIvoJhps8JGj7ItsS",
+  "design_baselines": [
+    390,
+    1440
+  ],
+  "generation_rules": [
+    "Use the complete standalone prompt from the source markdown without summarising or replacing it with a generic prefix.",
+    "Generate one distinct image per numbered prompt; respect subject count, framing, lighting, setting and aspect ratio.",
+    "Do not invent text, logos, JT2J-branded uniforms, implied real employees or factual client jobs.",
+    "Where no appropriate photographic slot exists in Figma, generate for editorial review but do not force imagery into the page or displace approved vector artwork.",
+    "Keep the official JT2J logo and SVG editorial art separate; never substitute an AI-generated logo.",
+    "Before publication, review each asset for visual defects, relevance, rights, FR/EN alternative text, attribution and source evidence."
+  ],
+  "assets": [
+    {
+      "id": 1,
+      "title": "Accueil — Hero multiservices",
+      "prompt_heading": "## 01. Accueil — Hero multiservices",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-01-accueil-hero-multiservices.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "01"
+    },
+    {
+      "id": 2,
+      "title": "Accueil — Carte Nos pôles",
+      "prompt_heading": "## 02. Accueil — Carte Nos pôles",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-02-accueil-carte-nos-poles.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "02"
+    },
+    {
+      "id": 3,
+      "title": "Accueil — Carte Entreprise",
+      "prompt_heading": "## 03. Accueil — Carte Entreprise",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-03-accueil-carte-entreprise.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "03"
+    },
+    {
+      "id": 4,
+      "title": "Accueil — Carte Nos services",
+      "prompt_heading": "## 04. Accueil — Carte Nos services",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-04-accueil-carte-nos-services.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "04"
+    },
+    {
+      "id": 5,
+      "title": "Accueil — Bannière Champ d'intervention",
+      "prompt_heading": "## 05. Accueil — Bannière Champ d'intervention",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-05-accueil-banniere-champ-d-intervention.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "05"
+    },
+    {
+      "id": 6,
+      "title": "Accueil — Portfolio Sécurité",
+      "prompt_heading": "## 06. Accueil — Portfolio Sécurité",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "5:6",
+      "target_size_px": [
+        1500,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-06-accueil-portfolio-securite.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "06"
+    },
+    {
+      "id": 7,
+      "title": "Accueil — Portfolio Logistique",
+      "prompt_heading": "## 07. Accueil — Portfolio Logistique",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "5:6",
+      "target_size_px": [
+        1500,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-07-accueil-portfolio-logistique.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "07"
+    },
+    {
+      "id": 8,
+      "title": "Accueil — Portfolio Hygiène",
+      "prompt_heading": "## 08. Accueil — Portfolio Hygiène",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "5:6",
+      "target_size_px": [
+        1500,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-08-accueil-portfolio-hygiene.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "08"
+    },
+    {
+      "id": 9,
+      "title": "Accueil — Portfolio Business",
+      "prompt_heading": "## 09. Accueil — Portfolio Business",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "5:6",
+      "target_size_px": [
+        1500,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-09-accueil-portfolio-business.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "09"
+    },
+    {
+      "id": 10,
+      "title": "Accueil — Portfolio Voyages",
+      "prompt_heading": "## 10. Accueil — Portfolio Voyages",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "5:6",
+      "target_size_px": [
+        1500,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-10-accueil-portfolio-voyages.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "10"
+    },
+    {
+      "id": 11,
+      "title": "Accueil — Processus de service",
+      "prompt_heading": "## 11. Accueil — Processus de service",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-11-accueil-processus-de-service.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "11"
+    },
+    {
+      "id": 12,
+      "title": "Accueil — Portrait institutionnel fictif",
+      "prompt_heading": "## 12. Accueil — Portrait institutionnel fictif",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-12-accueil-portrait-institutionnel-fictif.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "12"
+    },
+    {
+      "id": 13,
+      "title": "Accueil — Mosaïque domaines d'intervention",
+      "prompt_heading": "## 13. Accueil — Mosaïque domaines d'intervention",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-13-accueil-mosaique-domaines-d-intervention.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "13"
+    },
+    {
+      "id": 14,
+      "title": "Accueil — Miniature Sécurité et biométrie",
+      "prompt_heading": "## 14. Accueil — Miniature Sécurité et biométrie",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-14-accueil-miniature-securite-et-biometrie.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "14"
+    },
+    {
+      "id": 15,
+      "title": "Accueil — Miniature Logistique et tracking",
+      "prompt_heading": "## 15. Accueil — Miniature Logistique et tracking",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-15-accueil-miniature-logistique-et-tracking.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "15"
+    },
+    {
+      "id": 16,
+      "title": "Accueil — Miniature Hygiène et extermination",
+      "prompt_heading": "## 16. Accueil — Miniature Hygiène et extermination",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-16-accueil-miniature-hygiene-et-extermination.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "16"
+    },
+    {
+      "id": 17,
+      "title": "Accueil — Fond contact final",
+      "prompt_heading": "## 17. Accueil — Fond contact final",
+      "category": "home",
+      "route_identity": "home",
+      "routes": {
+        "fr": "/fr",
+        "en": "/en"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "1:2",
+          "mobile": "22:694"
+        },
+        "en": {
+          "desktop": "19:470",
+          "mobile": "22:788"
+        }
+      },
+      "aspect_ratio": "2:1",
+      "target_size_px": [
+        2400,
+        1200
+      ],
+      "output": "public/images/editorial/jt2j-17-accueil-fond-contact-final.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "17"
+    },
+    {
+      "id": 18,
+      "title": "Institutionnel — Hero Entreprise",
+      "prompt_heading": "## 18. Institutionnel — Hero Entreprise",
+      "category": "institutional",
+      "route_identity": "company",
+      "routes": {
+        "fr": "/fr/entreprise",
+        "en": "/en/entreprise"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "13:2",
+          "mobile": "23:698"
+        },
+        "en": {
+          "desktop": "17:392",
+          "mobile": "23:954"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-18-institutionnel-hero-entreprise.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "18"
+    },
+    {
+      "id": 19,
+      "title": "Institutionnel — Secteurs d'intervention",
+      "prompt_heading": "## 19. Institutionnel — Secteurs d'intervention",
+      "category": "institutional",
+      "route_identity": "company",
+      "routes": {
+        "fr": "/fr/entreprise",
+        "en": "/en/entreprise"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "13:2",
+          "mobile": "23:698"
+        },
+        "en": {
+          "desktop": "17:392",
+          "mobile": "23:954"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-19-institutionnel-secteurs-d-intervention.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "19"
+    },
+    {
+      "id": 20,
+      "title": "Institutionnel — Hero Pôles",
+      "prompt_heading": "## 20. Institutionnel — Hero Pôles",
+      "category": "institutional",
+      "route_identity": "divisions",
+      "routes": {
+        "fr": "/fr/poles",
+        "en": "/en/poles"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "13:64",
+          "mobile": "23:745"
+        },
+        "en": {
+          "desktop": "17:451",
+          "mobile": "23:1001"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-20-institutionnel-hero-poles.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "20"
+    },
+    {
+      "id": 21,
+      "title": "Institutionnel — Hero Services",
+      "prompt_heading": "## 21. Institutionnel — Hero Services",
+      "category": "institutional",
+      "route_identity": "services",
+      "routes": {
+        "fr": "/fr/services",
+        "en": "/en/services"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "13:120",
+          "mobile": "23:785"
+        },
+        "en": {
+          "desktop": "17:506",
+          "mobile": "23:1041"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-21-institutionnel-hero-services.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "21"
+    },
+    {
+      "id": 22,
+      "title": "Institutionnel — Hero Approche",
+      "prompt_heading": "## 22. Institutionnel — Hero Approche",
+      "category": "institutional",
+      "route_identity": "approach",
+      "routes": {
+        "fr": "/fr/approche",
+        "en": "/en/approche"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "13:193",
+          "mobile": "23:835"
+        },
+        "en": {
+          "desktop": "17:577",
+          "mobile": "23:1091"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-22-institutionnel-hero-approche.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "22"
+    },
+    {
+      "id": 23,
+      "title": "Institutionnel — Hero Contact",
+      "prompt_heading": "## 23. Institutionnel — Hero Contact",
+      "category": "institutional",
+      "route_identity": "contact",
+      "routes": {
+        "fr": "/fr/contact",
+        "en": "/en/contact"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "13:238",
+          "mobile": "23:871"
+        },
+        "en": {
+          "desktop": "17:621",
+          "mobile": "23:1127"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-23-institutionnel-hero-contact.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "23"
+    },
+    {
+      "id": 24,
+      "title": "Institutionnel — Hero FAQ",
+      "prompt_heading": "## 24. Institutionnel — Hero FAQ",
+      "category": "institutional",
+      "route_identity": "faq",
+      "routes": {
+        "fr": "/fr/faq",
+        "en": "/en/faq"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "13:306",
+          "mobile": "23:915"
+        },
+        "en": {
+          "desktop": "17:688",
+          "mobile": "23:1171"
+        }
+      },
+      "aspect_ratio": "5:4",
+      "target_size_px": [
+        2000,
+        1600
+      ],
+      "output": "public/images/editorial/jt2j-24-institutionnel-hero-faq.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "24"
+    },
+    {
+      "id": 25,
+      "title": "Pôle — Sécurité et biométrie",
+      "prompt_heading": "## 25. Pôle — Sécurité et biométrie",
+      "category": "division",
+      "route_identity": "SEC",
+      "routes": {
+        "fr": "/fr/poles/security-biometrics",
+        "en": "/en/poles/security-biometrics"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "14:80",
+          "mobile": "24:818"
+        },
+        "en": {
+          "desktop": "14:301",
+          "mobile": "24:1250"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-25-pole-securite-et-biometrie.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "25"
+    },
+    {
+      "id": 26,
+      "title": "Pôle — Logistique et tracking",
+      "prompt_heading": "## 26. Pôle — Logistique et tracking",
+      "category": "division",
+      "route_identity": "LOG",
+      "routes": {
+        "fr": "/fr/poles/logistics-tracking",
+        "en": "/en/poles/logistics-tracking"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "14:121",
+          "mobile": "24:854"
+        },
+        "en": {
+          "desktop": "14:342",
+          "mobile": "24:1286"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-26-pole-logistique-et-tracking.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "26"
+    },
+    {
+      "id": 27,
+      "title": "Pôle — Hygiène et extermination",
+      "prompt_heading": "## 27. Pôle — Hygiène et extermination",
+      "category": "division",
+      "route_identity": "HYG",
+      "routes": {
+        "fr": "/fr/poles/hygiene-pest-control",
+        "en": "/en/poles/hygiene-pest-control"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "14:163",
+          "mobile": "24:890"
+        },
+        "en": {
+          "desktop": "14:384",
+          "mobile": "24:1322"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-27-pole-hygiene-et-extermination.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "27"
+    },
+    {
+      "id": 28,
+      "title": "Pôle — Business et marketing",
+      "prompt_heading": "## 28. Pôle — Business et marketing",
+      "category": "division",
+      "route_identity": "BIZ",
+      "routes": {
+        "fr": "/fr/poles/business-marketing",
+        "en": "/en/poles/business-marketing"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "14:217",
+          "mobile": "24:926"
+        },
+        "en": {
+          "desktop": "14:438",
+          "mobile": "24:1358"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-28-pole-business-et-marketing.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "28"
+    },
+    {
+      "id": 29,
+      "title": "Pôle — Voyages et escapades",
+      "prompt_heading": "## 29. Pôle — Voyages et escapades",
+      "category": "division",
+      "route_identity": "TRV",
+      "routes": {
+        "fr": "/fr/poles/travel-escapes",
+        "en": "/en/poles/travel-escapes"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "14:259",
+          "mobile": "24:962"
+        },
+        "en": {
+          "desktop": "14:480",
+          "mobile": "24:1394"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-29-pole-voyages-et-escapades.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "29"
+    },
+    {
+      "id": 30,
+      "title": "Services — Hero Pest Control",
+      "prompt_heading": "## 30. Services — Hero Pest Control",
+      "category": "service",
+      "route_identity": "pest-control",
+      "routes": {
+        "fr": "/fr/services/pest-control",
+        "en": "/en/services/pest-control"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:210",
+          "mobile": "24:998"
+        },
+        "en": {
+          "desktop": "16:483",
+          "mobile": "24:1430"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-30-services-hero-pest-control.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "30"
+    },
+    {
+      "id": 31,
+      "title": "Services — Éditorial Pest Control",
+      "prompt_heading": "## 31. Services — Éditorial Pest Control",
+      "category": "service",
+      "route_identity": "pest-control",
+      "routes": {
+        "fr": "/fr/services/pest-control",
+        "en": "/en/services/pest-control"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:210",
+          "mobile": "24:998"
+        },
+        "en": {
+          "desktop": "16:483",
+          "mobile": "24:1430"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-31-services-editorial-pest-control.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "31"
+    },
+    {
+      "id": 32,
+      "title": "Services — Hero Cleaning",
+      "prompt_heading": "## 32. Services — Hero Cleaning",
+      "category": "service",
+      "route_identity": "cleaning",
+      "routes": {
+        "fr": "/fr/services/cleaning",
+        "en": "/en/services/cleaning"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:249",
+          "mobile": "24:1034"
+        },
+        "en": {
+          "desktop": "16:522",
+          "mobile": "24:1466"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-32-services-hero-cleaning.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "32"
+    },
+    {
+      "id": 33,
+      "title": "Services — Éditorial Cleaning",
+      "prompt_heading": "## 33. Services — Éditorial Cleaning",
+      "category": "service",
+      "route_identity": "cleaning",
+      "routes": {
+        "fr": "/fr/services/cleaning",
+        "en": "/en/services/cleaning"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:249",
+          "mobile": "24:1034"
+        },
+        "en": {
+          "desktop": "16:522",
+          "mobile": "24:1466"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-33-services-editorial-cleaning.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "33"
+    },
+    {
+      "id": 34,
+      "title": "Services — Hero Travel & Tourism",
+      "prompt_heading": "## 34. Services — Hero Travel & Tourism",
+      "category": "service",
+      "route_identity": "travel-tourism",
+      "routes": {
+        "fr": "/fr/services/travel-tourism",
+        "en": "/en/services/travel-tourism"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:288",
+          "mobile": "24:1070"
+        },
+        "en": {
+          "desktop": "16:561",
+          "mobile": "24:1502"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-34-services-hero-travel-tourism.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "34"
+    },
+    {
+      "id": 35,
+      "title": "Services — Éditorial Travel & Tourism",
+      "prompt_heading": "## 35. Services — Éditorial Travel & Tourism",
+      "category": "service",
+      "route_identity": "travel-tourism",
+      "routes": {
+        "fr": "/fr/services/travel-tourism",
+        "en": "/en/services/travel-tourism"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:288",
+          "mobile": "24:1070"
+        },
+        "en": {
+          "desktop": "16:561",
+          "mobile": "24:1502"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-35-services-editorial-travel-tourism.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "35"
+    },
+    {
+      "id": 36,
+      "title": "Services — Hero Désinfection et assainissement",
+      "prompt_heading": "## 36. Services — Hero Désinfection et assainissement",
+      "category": "service",
+      "route_identity": "disinfection-sanitation",
+      "routes": {
+        "fr": "/fr/services/disinfection-sanitation",
+        "en": "/en/services/disinfection-sanitation"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:327",
+          "mobile": "24:1106"
+        },
+        "en": {
+          "desktop": "16:600",
+          "mobile": "24:1538"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-36-services-hero-desinfection-et-assainissement.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "36"
+    },
+    {
+      "id": 37,
+      "title": "Services — Éditorial Désinfection et assainissement",
+      "prompt_heading": "## 37. Services — Éditorial Désinfection et assainissement",
+      "category": "service",
+      "route_identity": "disinfection-sanitation",
+      "routes": {
+        "fr": "/fr/services/disinfection-sanitation",
+        "en": "/en/services/disinfection-sanitation"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:327",
+          "mobile": "24:1106"
+        },
+        "en": {
+          "desktop": "16:600",
+          "mobile": "24:1538"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-37-services-editorial-desinfection-et-assainissement.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "37"
+    },
+    {
+      "id": 38,
+      "title": "Services — Hero Facility Management",
+      "prompt_heading": "## 38. Services — Hero Facility Management",
+      "category": "service",
+      "route_identity": "facility-management",
+      "routes": {
+        "fr": "/fr/services/facility-management",
+        "en": "/en/services/facility-management"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:366",
+          "mobile": "24:1142"
+        },
+        "en": {
+          "desktop": "16:639",
+          "mobile": "24:1574"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-38-services-hero-facility-management.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "38"
+    },
+    {
+      "id": 39,
+      "title": "Services — Éditorial Facility Management",
+      "prompt_heading": "## 39. Services — Éditorial Facility Management",
+      "category": "service",
+      "route_identity": "facility-management",
+      "routes": {
+        "fr": "/fr/services/facility-management",
+        "en": "/en/services/facility-management"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:366",
+          "mobile": "24:1142"
+        },
+        "en": {
+          "desktop": "16:639",
+          "mobile": "24:1574"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-39-services-editorial-facility-management.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "39"
+    },
+    {
+      "id": 40,
+      "title": "Services — Hero Transport et logistique",
+      "prompt_heading": "## 40. Services — Hero Transport et logistique",
+      "category": "service",
+      "route_identity": "transport-logistics",
+      "routes": {
+        "fr": "/fr/services/transport-logistics",
+        "en": "/en/services/transport-logistics"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:405",
+          "mobile": "24:1178"
+        },
+        "en": {
+          "desktop": "16:678",
+          "mobile": "24:1610"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-40-services-hero-transport-et-logistique.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "40"
+    },
+    {
+      "id": 41,
+      "title": "Services — Éditorial Transport et logistique",
+      "prompt_heading": "## 41. Services — Éditorial Transport et logistique",
+      "category": "service",
+      "route_identity": "transport-logistics",
+      "routes": {
+        "fr": "/fr/services/transport-logistics",
+        "en": "/en/services/transport-logistics"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:405",
+          "mobile": "24:1178"
+        },
+        "en": {
+          "desktop": "16:678",
+          "mobile": "24:1610"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-41-services-editorial-transport-et-logistique.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "41"
+    },
+    {
+      "id": 42,
+      "title": "Services — Hero Trading et approvisionnement",
+      "prompt_heading": "## 42. Services — Hero Trading et approvisionnement",
+      "category": "service",
+      "route_identity": "trading-supply",
+      "routes": {
+        "fr": "/fr/services/trading-supply",
+        "en": "/en/services/trading-supply"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:444",
+          "mobile": "24:1214"
+        },
+        "en": {
+          "desktop": "16:717",
+          "mobile": "24:1646"
+        }
+      },
+      "aspect_ratio": "1:1",
+      "target_size_px": [
+        1800,
+        1800
+      ],
+      "output": "public/images/editorial/jt2j-42-services-hero-trading-et-approvisionnement.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "42"
+    },
+    {
+      "id": 43,
+      "title": "Services — Éditorial Trading et approvisionnement",
+      "prompt_heading": "## 43. Services — Éditorial Trading et approvisionnement",
+      "category": "service",
+      "route_identity": "trading-supply",
+      "routes": {
+        "fr": "/fr/services/trading-supply",
+        "en": "/en/services/trading-supply"
+      },
+      "figma_frames": {
+        "fr": {
+          "desktop": "16:444",
+          "mobile": "24:1214"
+        },
+        "en": {
+          "desktop": "16:717",
+          "mobile": "24:1646"
+        }
+      },
+      "aspect_ratio": "4:3",
+      "target_size_px": [
+        1920,
+        1440
+      ],
+      "output": "public/images/editorial/jt2j-43-services-editorial-trading-et-approvisionnement.webp",
+      "status": "pending-generation",
+      "publicationApproved": false,
+      "alt_fr": null,
+      "alt_en": null,
+      "attribution": null,
+      "rights_evidence": null,
+      "origin": "ai-generated fictional editorial illustration",
+      "source_prompt_id": "43"
+    }
+  ]
+}

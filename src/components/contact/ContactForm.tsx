@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import type { Locale } from '@/i18n/config';
 import { LeadConfirmation } from './LeadConfirmation';
+import { contactDivisionOptions, contactServiceOptions, getContactPrefill } from './contactOptions';
 
 type Props = { locale: Locale; sourcePage: string };
 
@@ -59,12 +60,31 @@ const copy = {
   },
 } as const;
 
+function subscribeLocation(onChange: () => void) {
+  window.addEventListener('popstate', onChange);
+  return () => window.removeEventListener('popstate', onChange);
+}
+
+function getClientSearch() {
+  return window.location.search;
+}
+
+function getServerSearch() {
+  return '';
+}
+
 export function ContactForm({ locale, sourcePage }: Props) {
   const labels = copy[locale];
   const [status, setStatus] = useState<
     'idle' | 'sending' | 'error' | 'notification-error'
   >('idle');
   const [confirmationId, setConfirmationId] = useState<string>();
+  // Stable server snapshot avoids reading location during hydration.
+  const locationSearch = useSyncExternalStore(subscribeLocation, getClientSearch, getServerSearch);
+  const prefill = getContactPrefill(locationSearch);
+  const [selection, setSelection] = useState<{ division: string; service: string } | null>(null);
+  const selectedDivision = selection?.division ?? prefill.division;
+  const selectedService = selection?.service ?? prefill.service;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -139,26 +159,29 @@ export function ContactForm({ locale, sourcePage }: Props) {
         </label>
         <label>
           {labels.division}
-          <select name="division" defaultValue="">
+          <select name="division" value={selectedDivision} onChange={(event) => {
+            const next = event.currentTarget.value;
+            const serviceBelongsToDivision =
+              contactServiceOptions.find((item) => item.slug === selectedService)?.division === next;
+            setSelection({ division: next, service: serviceBelongsToDivision ? selectedService : '' });
+          }}>
             <option value="">{labels.divisionNone}</option>
-            <option value="security-biometrics">JT2J Security &amp; Biometrics</option>
-            <option value="logistics-tracking">JT2J Logistics &amp; Tracking</option>
-            <option value="hygiene-maintenance">JT2J Hygiene &amp; Maintenance</option>
-            <option value="business-solutions">JT2J Business Solutions</option>
-            <option value="travel-tourism">JT2J Travel &amp; Tourism</option>
+            {contactDivisionOptions.map((item) => (
+              <option key={item.slug} value={item.slug}>{item.label[locale]}</option>
+            ))}
           </select>
         </label>
         <label>
           {labels.service}
-          <select name="service" defaultValue="">
+          <select name="service" value={selectedService} onChange={(event) => {
+            const next = event.currentTarget.value;
+            const related = contactServiceOptions.find((item) => item.slug === next);
+            setSelection({ division: related?.division ?? selectedDivision, service: next });
+          }}>
             <option value="">{labels.serviceNone}</option>
-            <option value="pest-control-extermination">Pest Control &amp; Extermination</option>
-            <option value="cleaning-services">Cleaning Services</option>
-            <option value="travel-tourism">Travel &amp; Tourism</option>
-            <option value="disinfection-sanitation">Disinfection &amp; Sanitation</option>
-            <option value="facility-management">Facility Management</option>
-            <option value="transport-logistics">Transport &amp; Logistics</option>
-            <option value="general-trading-supply">General Trading &amp; Supply</option>
+            {contactServiceOptions.map((item) => (
+              <option key={item.slug} value={item.slug}>{item.label[locale]}</option>
+            ))}
           </select>
         </label>
         <label>
