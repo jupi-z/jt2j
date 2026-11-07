@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Locale } from '@/i18n/config';
 import { LeadConfirmation } from './LeadConfirmation';
+import { contactDivisionOptions, contactServiceOptions, getContactPrefill } from './contactOptions';
 
 type Props = { locale: Locale; sourcePage: string };
 
@@ -65,6 +66,14 @@ export function ContactForm({ locale, sourcePage }: Props) {
     'idle' | 'sending' | 'error' | 'notification-error'
   >('idle');
   const [confirmationId, setConfirmationId] = useState<string>();
+  const [selectedDivision, setSelectedDivision] = useState('');
+  const [selectedService, setSelectedService] = useState('');
+
+  useEffect(() => {
+    const prefill = getContactPrefill(window.location.search);
+    setSelectedDivision(prefill.division);
+    setSelectedService(prefill.service);
+  }, []);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -139,26 +148,31 @@ export function ContactForm({ locale, sourcePage }: Props) {
         </label>
         <label>
           {labels.division}
-          <select name="division" defaultValue="">
+          <select name="division" value={selectedDivision} onChange={(event) => {
+            const next = event.currentTarget.value;
+            setSelectedDivision(next);
+            if (contactServiceOptions.find((item) => item.slug === selectedService)?.division !== next) {
+              setSelectedService('');
+            }
+          }}>
             <option value="">{labels.divisionNone}</option>
-            <option value="security-biometrics">JT2J Security &amp; Biometrics</option>
-            <option value="logistics-tracking">JT2J Logistics &amp; Tracking</option>
-            <option value="hygiene-maintenance">JT2J Hygiene &amp; Maintenance</option>
-            <option value="business-solutions">JT2J Business Solutions</option>
-            <option value="travel-tourism">JT2J Travel &amp; Tourism</option>
+            {contactDivisionOptions.map((item) => (
+              <option key={item.slug} value={item.slug}>{item.label[locale]}</option>
+            ))}
           </select>
         </label>
         <label>
           {labels.service}
-          <select name="service" defaultValue="">
+          <select name="service" value={selectedService} onChange={(event) => {
+            const next = event.currentTarget.value;
+            setSelectedService(next);
+            const related = contactServiceOptions.find((item) => item.slug === next);
+            if (related) setSelectedDivision(related.division);
+          }}>
             <option value="">{labels.serviceNone}</option>
-            <option value="pest-control-extermination">Pest Control &amp; Extermination</option>
-            <option value="cleaning-services">Cleaning Services</option>
-            <option value="travel-tourism">Travel &amp; Tourism</option>
-            <option value="disinfection-sanitation">Disinfection &amp; Sanitation</option>
-            <option value="facility-management">Facility Management</option>
-            <option value="transport-logistics">Transport &amp; Logistics</option>
-            <option value="general-trading-supply">General Trading &amp; Supply</option>
+            {contactServiceOptions.map((item) => (
+              <option key={item.slug} value={item.slug}>{item.label[locale]}</option>
+            ))}
           </select>
         </label>
         <label>
