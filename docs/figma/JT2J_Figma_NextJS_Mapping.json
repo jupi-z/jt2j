@@ -1,0 +1,431 @@
+{
+  "schema": "jt2j-figma-to-nextjs-handoff/v1",
+  "prepared_date": "2026-11-07",
+  "figma": {
+    "file_key": "qeBdozIvoJhps8JGj7ItsS",
+    "url": "https://www.figma.com/design/qeBdozIvoJhps8JGj7ItsS",
+    "contract_frame": "87:3075",
+    "route_matrix_frame": "88:3075",
+    "editorial_reference_frame": "73:3075",
+    "route_index_frame": "30:1058"
+  },
+  "implementation": {
+    "repository": "jupi-z/jt2j",
+    "branch": "feat/jt2j-production",
+    "routing_source": "src/routing/catalog.ts",
+    "content_source": "src/content/seed/pages.ts",
+    "pages_per_locale": 19,
+    "routes_total": 38,
+    "reference_frames": 76,
+    "framework": "Next.js App Router + React + TypeScript"
+  },
+  "baselines": {
+    "mobile_px": 390,
+    "desktop_px": 1440,
+    "other_viewport_checks_px": [
+      320,
+      360,
+      430,
+      768,
+      1024
+    ],
+    "tablet_reference_validated": false,
+    "responsive_approach": "fluid implementation between reference breakpoints; visually review before approval"
+  },
+  "fonts": {
+    "heading": "Barlow Condensed / Bold",
+    "body": "Barlow / Regular",
+    "styles": {
+      "H1": {
+        "size_px": 56,
+        "line_height_percent": 108
+      },
+      "H2": {
+        "size_px": 42,
+        "line_height_percent": 108
+      },
+      "H3": {
+        "size_px": 27,
+        "line_height_percent": 108
+      },
+      "Body": {
+        "size_px": 18,
+        "line_height_percent": 145
+      },
+      "Caption": {
+        "size_px": 14,
+        "line_height_percent": 145
+      }
+    }
+  },
+  "css_tokens": {
+    "--jt2j-navy": "#05122C",
+    "--jt2j-deep": "#0B2D58",
+    "--jt2j-blue": "#1686BB",
+    "--jt2j-gold": "#C59A45",
+    "--jt2j-white": "#FFFFFF",
+    "--jt2j-mist": "#F3F6F9",
+    "--jt2j-ink": "#111827",
+    "--jt2j-sub": "#566374",
+    "--jt2j-soft": "#DCE5EF",
+    "--jt2j-line": "#CCD6E0",
+    "--jt2j-error": "#A32D35",
+    "--jt2j-positive": "#126649",
+    "--jt2j-blue-action": "#0B6D9B"
+  },
+  "route_matrix": [
+    {
+      "identity": "home",
+      "path": "",
+      "fr": {
+        "url": "/fr",
+        "desktop": "1:2",
+        "mobile": "22:694"
+      },
+      "en": {
+        "url": "/en",
+        "desktop": "19:470",
+        "mobile": "22:788"
+      }
+    },
+    {
+      "identity": "company",
+      "path": "/entreprise",
+      "fr": {
+        "url": "/fr/entreprise",
+        "desktop": "13:2",
+        "mobile": "23:698"
+      },
+      "en": {
+        "url": "/en/entreprise",
+        "desktop": "17:392",
+        "mobile": "23:954"
+      }
+    },
+    {
+      "identity": "divisions",
+      "path": "/poles",
+      "fr": {
+        "url": "/fr/poles",
+        "desktop": "13:64",
+        "mobile": "23:745"
+      },
+      "en": {
+        "url": "/en/poles",
+        "desktop": "17:451",
+        "mobile": "23:1001"
+      }
+    },
+    {
+      "identity": "services",
+      "path": "/services",
+      "fr": {
+        "url": "/fr/services",
+        "desktop": "13:120",
+        "mobile": "23:785"
+      },
+      "en": {
+        "url": "/en/services",
+        "desktop": "17:506",
+        "mobile": "23:1041"
+      }
+    },
+    {
+      "identity": "approach",
+      "path": "/approche",
+      "fr": {
+        "url": "/fr/approche",
+        "desktop": "13:193",
+        "mobile": "23:835"
+      },
+      "en": {
+        "url": "/en/approche",
+        "desktop": "17:577",
+        "mobile": "23:1091"
+      }
+    },
+    {
+      "identity": "contact",
+      "path": "/contact",
+      "fr": {
+        "url": "/fr/contact",
+        "desktop": "13:238",
+        "mobile": "23:871"
+      },
+      "en": {
+        "url": "/en/contact",
+        "desktop": "17:621",
+        "mobile": "23:1127"
+      }
+    },
+    {
+      "identity": "faq",
+      "path": "/faq",
+      "fr": {
+        "url": "/fr/faq",
+        "desktop": "13:306",
+        "mobile": "23:915"
+      },
+      "en": {
+        "url": "/en/faq",
+        "desktop": "17:688",
+        "mobile": "23:1171"
+      }
+    },
+    {
+      "identity": "SEC",
+      "path": "/poles/security-biometrics",
+      "fr": {
+        "url": "/fr/poles/security-biometrics",
+        "desktop": "14:80",
+        "mobile": "24:818"
+      },
+      "en": {
+        "url": "/en/poles/security-biometrics",
+        "desktop": "14:301",
+        "mobile": "24:1250"
+      }
+    },
+    {
+      "identity": "LOG",
+      "path": "/poles/logistics-tracking",
+      "fr": {
+        "url": "/fr/poles/logistics-tracking",
+        "desktop": "14:121",
+        "mobile": "24:854"
+      },
+      "en": {
+        "url": "/en/poles/logistics-tracking",
+        "desktop": "14:342",
+        "mobile": "24:1286"
+      }
+    },
+    {
+      "identity": "HYG",
+      "path": "/poles/hygiene-pest-control",
+      "fr": {
+        "url": "/fr/poles/hygiene-pest-control",
+        "desktop": "14:163",
+        "mobile": "24:890"
+      },
+      "en": {
+        "url": "/en/poles/hygiene-pest-control",
+        "desktop": "14:384",
+        "mobile": "24:1322"
+      }
+    },
+    {
+      "identity": "BIZ",
+      "path": "/poles/business-marketing",
+      "fr": {
+        "url": "/fr/poles/business-marketing",
+        "desktop": "14:217",
+        "mobile": "24:926"
+      },
+      "en": {
+        "url": "/en/poles/business-marketing",
+        "desktop": "14:438",
+        "mobile": "24:1358"
+      }
+    },
+    {
+      "identity": "TRV",
+      "path": "/poles/travel-escapes",
+      "fr": {
+        "url": "/fr/poles/travel-escapes",
+        "desktop": "14:259",
+        "mobile": "24:962"
+      },
+      "en": {
+        "url": "/en/poles/travel-escapes",
+        "desktop": "14:480",
+        "mobile": "24:1394"
+      }
+    },
+    {
+      "identity": "pest-control",
+      "path": "/services/pest-control",
+      "fr": {
+        "url": "/fr/services/pest-control",
+        "desktop": "16:210",
+        "mobile": "24:998"
+      },
+      "en": {
+        "url": "/en/services/pest-control",
+        "desktop": "16:483",
+        "mobile": "24:1430"
+      }
+    },
+    {
+      "identity": "cleaning",
+      "path": "/services/cleaning",
+      "fr": {
+        "url": "/fr/services/cleaning",
+        "desktop": "16:249",
+        "mobile": "24:1034"
+      },
+      "en": {
+        "url": "/en/services/cleaning",
+        "desktop": "16:522",
+        "mobile": "24:1466"
+      }
+    },
+    {
+      "identity": "travel-tourism",
+      "path": "/services/travel-tourism",
+      "fr": {
+        "url": "/fr/services/travel-tourism",
+        "desktop": "16:288",
+        "mobile": "24:1070"
+      },
+      "en": {
+        "url": "/en/services/travel-tourism",
+        "desktop": "16:561",
+        "mobile": "24:1502"
+      }
+    },
+    {
+      "identity": "disinfection-sanitation",
+      "path": "/services/disinfection-sanitation",
+      "fr": {
+        "url": "/fr/services/disinfection-sanitation",
+        "desktop": "16:327",
+        "mobile": "24:1106"
+      },
+      "en": {
+        "url": "/en/services/disinfection-sanitation",
+        "desktop": "16:600",
+        "mobile": "24:1538"
+      }
+    },
+    {
+      "identity": "facility-management",
+      "path": "/services/facility-management",
+      "fr": {
+        "url": "/fr/services/facility-management",
+        "desktop": "16:366",
+        "mobile": "24:1142"
+      },
+      "en": {
+        "url": "/en/services/facility-management",
+        "desktop": "16:639",
+        "mobile": "24:1574"
+      }
+    },
+    {
+      "identity": "transport-logistics",
+      "path": "/services/transport-logistics",
+      "fr": {
+        "url": "/fr/services/transport-logistics",
+        "desktop": "16:405",
+        "mobile": "24:1178"
+      },
+      "en": {
+        "url": "/en/services/transport-logistics",
+        "desktop": "16:678",
+        "mobile": "24:1610"
+      }
+    },
+    {
+      "identity": "trading-supply",
+      "path": "/services/trading-supply",
+      "fr": {
+        "url": "/fr/services/trading-supply",
+        "desktop": "16:444",
+        "mobile": "24:1214"
+      },
+      "en": {
+        "url": "/en/services/trading-supply",
+        "desktop": "16:717",
+        "mobile": "24:1646"
+      }
+    }
+  ],
+  "states": [
+    {
+      "name": "desktop-menu",
+      "figma_node_id": "26:1058"
+    },
+    {
+      "name": "mobile-menu",
+      "figma_node_id": "26:1077"
+    },
+    {
+      "name": "language",
+      "figma_node_id": "26:1096"
+    },
+    {
+      "name": "filter",
+      "figma_node_id": "26:1109"
+    },
+    {
+      "name": "filter-empty",
+      "figma_node_id": "26:1126"
+    },
+    {
+      "name": "faq-expanded",
+      "figma_node_id": "26:1137"
+    },
+    {
+      "name": "contact-initial",
+      "figma_node_id": "26:1149"
+    },
+    {
+      "name": "contact-invalid",
+      "figma_node_id": "26:1166"
+    },
+    {
+      "name": "contact-loading",
+      "figma_node_id": "26:1186"
+    },
+    {
+      "name": "contact-error",
+      "figma_node_id": "26:1203"
+    },
+    {
+      "name": "contact-server-success",
+      "figma_node_id": "26:1220"
+    },
+    {
+      "name": "contact-disabled",
+      "figma_node_id": "26:1237"
+    },
+    {
+      "name": "cookie-preferences",
+      "figma_node_id": "26:1253"
+    },
+    {
+      "name": "accessibility",
+      "figma_node_id": "26:1267"
+    }
+  ],
+  "components": {
+    "header_desktop_fr": "12:56",
+    "header_desktop_en": "12:62",
+    "header_mobile_fr": "12:68",
+    "header_mobile_en": "12:72",
+    "footer_desktop_fr": "12:76",
+    "footer_desktop_en": "12:85",
+    "footer_mobile_fr": "22:678",
+    "footer_mobile_en": "22:686",
+    "button_primary": "12:94",
+    "button_outline": "12:96",
+    "division_tile": "12:98",
+    "symbols": [
+      "37:1218",
+      "37:1227",
+      "37:1235",
+      "37:1245",
+      "37:1253",
+      "37:1262"
+    ]
+  },
+  "constraints": [
+    "A Figma design is not validated executable Next.js code.",
+    "Do not publish draft CMS content, placeholder photos, unapproved legal copy or conditional routes.",
+    "Never simulate a successful form submission or reservation.",
+    "Preserve Figma geometry at 390 and 1440 px and test intermediate breakpoints.",
+    "Implement semantic HTML/CSS and independent SVG assets; never rasterize a complete page.",
+    "Screenshot-based browser comparisons are required before claiming pixel-level fidelity."
+  ]
+}
