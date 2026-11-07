@@ -44,7 +44,7 @@ La branche technique `feat/jt2j-production` est déjà un chantier avancé : Nex
 - Compresser avec soin, conserver un master et des variantes si les compositions desktop/mobile l'exigent ; respecter les ratios et `object-position` selon les frames. Ne pas ajouter d'eau, d'effets, de texte ou de logo dans les images.
 - Ces scènes sont **fictives** : ne les décrire ni comme photographies réelles des équipes JT2J ni comme chantiers ou clients documentés. Elles ne prouvent aucune prestation.
 - Vérifier l'adéquation réelle avec le design : lorsqu'une frame utilise une illustration SVG et ne possède pas de slot photographique correspondant, préserver le SVG. Mettre l'image dans la médiathèque pour examen, sans imposer une modification de layout non validée.
-- Compléter le manifeste après génération : `status: generated` UNIQUEMENT si le WebP existe et a été contrôlé ; renseigner les alternatives FR/EN pertinentes ou documenter l'image purement décorative. **Laisser `publicationApproved: false` tant qu'un humain n'a pas confirmé droits, représentations et publication.**
+- Compléter le manifeste après génération : `status: generated` UNIQUEMENT si le WebP existe et a été contrôlé ; renseigner les alternatives FR/EN pertinentes ou, si elle est purement décorative, définir `decorative: true`, `alt_fr: ""` et `alt_en: ""`. **Laisser `publicationApproved: false` tant qu'un humain n'a pas confirmé droits, représentations et publication.**
 - Si l'environnement Codex ne permet pas de générer les images : déclarer le blocage précis. Ne PAS remplacer par des photos aléatoires, un lien externe, un SVG peint ou des placeholders faussement finalisés.
 
 ### 4 — UX, états, accessibilité
