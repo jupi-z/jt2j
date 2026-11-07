@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { routing } from '@/i18n/config';
 import { requireLocale, siteOrigin } from '@/routing/seo';
 import '@/styles/tokens.css';
+import '@/styles/figma-v2-tokens.css';
 import '@/styles/typography.css';
 import '@/styles/globals.css';
 
