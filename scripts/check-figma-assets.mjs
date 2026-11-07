@@ -63,7 +63,11 @@ for (const [index, asset] of (manifest.assets ?? []).entries()) {
   }
   if (strictPublication) {
     check(asset.publicationApproved === true, `Prompt ${id} is not approved for publication`);
-    check(Boolean(asset.alt_fr && asset.alt_en), `Prompt ${id} needs approved bilingual alt text`);
+    if (asset.decorative === true) {
+      check(asset.alt_fr === '' && asset.alt_en === '', `Prompt ${id} decorative images require empty alt attributes in both locales`);
+    } else {
+      check(Boolean(asset.alt_fr && asset.alt_en), `Prompt ${id} needs approved bilingual alt text`);
+    }
     check(Boolean(asset.rights_evidence), `Prompt ${id} needs approved media rights evidence`);
   }
 }
